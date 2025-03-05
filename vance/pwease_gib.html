@@ -97,8 +97,8 @@
             align-items: center;
         }
         .character-option img {
-            width: 124px; /* Doubled from 62px */
-            height: 124px; /* Doubled from 62px */
+            width: 124px;
+            height: 124px;
             margin-bottom: 10px;
             cursor: pointer;
             transition: transform 0.2s ease;
@@ -211,9 +211,9 @@
         lollipopImg.src = 'lollipop.png';
         const officeImg = new Image();
         officeImg.src = 'officepixel.png';
-        const hallwayImg = new Image(); // New background
+        const hallwayImg = new Image();
         hallwayImg.src = 'hallway.png';
-        const lawnImg = new Image(); // New background
+        const lawnImg = new Image();
         lawnImg.src = 'lawn.png';
         const trumpImg = new Image();
         trumpImg.src = 'trumphead.png';
@@ -224,7 +224,7 @@
 
         // Background array for rotation
         const backgrounds = [officeImg, hallwayImg, lawnImg];
-        let currentBackgroundIndex = 0; // Start with officepixel.png
+        let currentBackgroundIndex = 0;
 
         let selectedVanceImg = null;
         let gameOverText = null;
@@ -234,7 +234,7 @@
 
         // Preload images and set up video
         let imagesLoaded = 0;
-        const totalImages = 11; // Updated to include hallway.png and lawn.png
+        const totalImages = 11;
         function imageLoaded(img) {
             imagesLoaded++;
             console.log(`Image loaded: ${img.src}, Total loaded: ${imagesLoaded}/${totalImages}`);
@@ -260,10 +260,10 @@
         lollipopImg.onerror = () => imageError(lollipopImg);
         officeImg.onload = () => imageLoaded(officeImg);
         officeImg.onerror = () => imageError(officeImg);
-        hallwayImg.onload = () => imageLoaded(hallwayImg); // New
-        hallwayImg.onerror = () => imageError(hallwayImg); // New
-        lawnImg.onload = () => imageLoaded(lawnImg); // New
-        lawnImg.onerror = () => imageError(lawnImg); // New
+        hallwayImg.onload = () => imageLoaded(hallwayImg);
+        hallwayImg.onerror = () => imageError(hallwayImg);
+        lawnImg.onload = () => imageLoaded(lawnImg);
+        lawnImg.onerror = () => imageError(lawnImg);
         trumpImg.onload = () => imageLoaded(trumpImg);
         trumpImg.onerror = () => imageError(trumpImg);
         cybertruckImg.onload = () => imageLoaded(cybertruckImg);
@@ -694,7 +694,7 @@
             pauseBtn.disabled = false;
             resumeBtn.disabled = true;
             canvas.classList.remove('green-border');
-            currentBackgroundIndex = 0; // Reset to officepixel.png
+            currentBackgroundIndex = 0;
             spawnZelenskyHeads(levels[0]);
             gameOverText = null;
             restartBtn.style.display = 'none';
@@ -728,6 +728,39 @@
                 highScoreDisplay.textContent = `High Score: ${highScore}`;
             }
 
+            // Reset game state to initial values
+            level = 1;
+            score = 0;
+            timeLeft = 60;
+            currentBackgroundIndex = 0;
+            player.width = player.baseWidth;
+            player.height = player.baseHeight;
+            player.displayWidth = player.baseWidth * scaleFactor;
+            player.displayHeight = player.baseHeight * scaleFactor;
+            player.targetWidth = player.baseWidth * scaleFactor;
+            player.targetHeight = player.baseHeight * scaleFactor;
+            player.x = canvas.width / 2 - player.baseWidth / 2;
+            player.speed = player.baseSpeed * scaleFactor;
+            player.text = null;
+            player.invincible = false;
+            player.invincibleTimer = 0;
+            player.sizeMultiplier = 1;
+            player.sizeTransition = 1;
+            player.explosion = null;
+            hasCybertruck = false;
+            lollipops = [];
+            trumpHeads = [];
+            cybertrucks = [];
+            textEffects = [];
+            gamePaused = false;
+            levelTransition = false;
+            transitionTimer = 3;
+            gibMoneyTimer = 0;
+            trumpSpawnTimer = 10;
+            cybertruckSpawnTimer = 20;
+            lastTrumpSpawnTime = 60;
+            lastCybertruckSpawnTime = 60;
+
             selectedVanceImg = null;
             gameActive = false;
             gameOverText = null;
@@ -738,7 +771,7 @@
             characterSelect.style.display = 'flex';
             touchLeft = false;
             touchRight = false;
-            console.log("Returned to character select");
+            console.log("Returned to character select with reset to Level 1");
         }
 
         function startGameTimer() {
@@ -793,7 +826,7 @@
                     player.sizeTransition = 1;
                     player.explosion = null;
                     spawnZelenskyHeads(levels[level - 1]);
-                    currentBackgroundIndex = (level - 1) % backgrounds.length; // Rotate background
+                    currentBackgroundIndex = (level - 1) % backgrounds.length;
                     levelTransition = false;
                     lastTime = performance.now();
                     if (!isLoopRunning) {
@@ -1042,7 +1075,7 @@
                 ctx.fillStyle = flash ? 'rgba(255, 0, 0, 0.5)' : 'rgba(255, 0, 0, 0)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
-            drawBackground(); // Use the current background
+            drawBackground();
 
             if (player.invincible) {
                 if (player.invincibleTimer <= 3) {
