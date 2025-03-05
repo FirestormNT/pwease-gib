@@ -222,6 +222,14 @@
         const explosionImg = new Image();
         explosionImg.src = 'explosion.png';
 
+        // Load sound effects
+        const selectSound = new Audio('selectsound.wav');
+        const explosionSound = new Audio('explosion.wav');
+        const shootSound = new Audio('shoot.wav');
+        const enlargedSound = new Audio('enlarged.wav');
+        const hitSoundPool = [new Audio('hit.wav'), new Audio('hit.wav'), new Audio('hit.wav')]; // Pool for overlapping hits
+        let hitSoundIndex = 0;
+
         // Background array for rotation
         const backgrounds = [officeImg, hallwayImg, lawnImg];
         let currentBackgroundIndex = 0;
@@ -368,11 +376,12 @@
             console.log(`Background drawn: ${currentBackground.src.split('/').pop()}`);
         }
 
-        // Character selection via image clicks
+        // Character selection via image clicks with sound
         vanceHead2ImgElement.addEventListener('click', () => {
             selectedVanceImg = vanceHead2Img;
             characterSelect.style.display = 'none';
             characterVideo.pause();
+            selectSound.play(); // Play selection sound
             console.log("Selected Vance Head - Starting game");
             drawInitialScreen();
             startGame();
@@ -382,6 +391,7 @@
             selectedVanceImg = vanceWithHatImg;
             characterSelect.style.display = 'none';
             characterVideo.pause();
+            selectSound.play(); // Play selection sound
             console.log("Selected Vance with Hat - Starting game");
             drawInitialScreen();
             startGame();
@@ -391,6 +401,7 @@
             selectedVanceImg = vanceGirlImg;
             characterSelect.style.display = 'none';
             characterVideo.pause();
+            selectSound.play(); // Play selection sound
             console.log("Selected Vance Girl - Starting game");
             drawInitialScreen();
             startGame();
@@ -623,6 +634,7 @@
             lollipops.push(lollipop);
             player.text = "Say Pwease";
             player.textTimer = 1;
+            shootSound.play(); // Play shoot sound
             console.log("Lollipop shot at:", lollipop.x, lollipop.y, "Lollipops array length:", lollipops.length);
         }
 
@@ -639,6 +651,7 @@
                     sizeTimer: 0.5
                 };
                 hasCybertruck = false;
+                explosionSound.play(); // Play explosion sound
                 console.log("Cybertruck exploded manually");
             }
         }
@@ -728,7 +741,6 @@
                 highScoreDisplay.textContent = `High Score: ${highScore}`;
             }
 
-            // Reset game state to initial values
             level = 1;
             score = 0;
             timeLeft = 60;
@@ -917,6 +929,7 @@
                     player.sizeTransition = 0;
                     player.text = "I'M NOT YELLING!";
                     player.textTimer = 2;
+                    enlargedSound.play(); // Play enlarged sound
                 }
             });
 
@@ -959,6 +972,8 @@
                             text: "Thank You",
                             textTimer: 1
                         });
+                        hitSoundPool[hitSoundIndex].play(); // Play hit sound
+                        hitSoundIndex = (hitSoundIndex + 1) % hitSoundPool.length;
                         return false;
                     }
                     return true;
@@ -992,6 +1007,8 @@
                             text: "Thank You",
                             textTimer: 1
                         });
+                        hitSoundPool[hitSoundIndex].play(); // Play hit sound
+                        hitSoundIndex = (hitSoundIndex + 1) % hitSoundPool.length;
                         if (!player.invincible) {
                             player.displayWidth *= 1.05;
                             player.displayHeight *= 1.05;
