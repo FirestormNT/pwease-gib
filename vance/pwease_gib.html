@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pwease Gib</title> <!-- Updated title to reflect new filename -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+            background-color: #000;
+            touch-action: none;
+        }
+        #gameInfo {
+            margin: 10px;
+            color: white;
+        }
+        #controls {
+            margin: 10px;
+        }
+        canvas {
+            border: 1px solid black;
+            max-width: 100%;
+            max-height: 80vh;
+            transition: border-color 0.5s ease;
+            background-color: #fff;
+        }
+        canvas.green-border {
+            border-color: green;
+        }
+        #characterSelect {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            background: none;
+            z-index: 10;
+        }
+        #videoContainer {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column; /* Stack title and video vertically */
+        }
+        #videoTitle {
+            font-size: 24px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        #characterVideo {
+            width: 300px;
+            height: auto;
+            margin-bottom: 10px;
+        }
+        #muteBtn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            border: none;
+            color: white;
+            font-size: 20px;
+            padding: 5px;
+            cursor: pointer;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #muteBtn:hover {
+            background: rgba(0, 0, 0, 1);
+        }
+        #characterSelect h2 {
+            margin: 10px 0;
+        }
+        #characterOptions {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+        }
+        .character-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .character-option img {
+            width: 62px;
+            height: 62px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        .character-option img:hover {
+            transform: scale(1.1);
+        }
+        #restartBtn, #characterSelectBtn {
+            display: none;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+            text-align: center;
+            background-color: #333;
+            border: 1px solid #fff;
+            color: white;
+            z-index: 10;
+        }
+        #restartBtn {
+            top: 60%;
+        }
+        #characterSelectBtn {
+            top: 70%;
+        }
+        #controlInfo {
+            margin-top: 10px;
+            color: white;
+            text-align: center;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameInfo">
+        <span id="level">Level: 1</span> |
+        <span id="score">Score: 0</span> |
+        <span id="highScore">High Score: 0</span> |
+        <span id="time">Time: 60</span>
+    </div>
+    <div id="controls">
+        <button id="pauseBtn">Pause</button>
+        <button id="resumeBtn" disabled>Resume</button>
+        <button id="menuBtn">Menu</button>
+    </div>
+    <canvas id="gameCanvas"></canvas>
+    <div id="characterSelect">
+        <div id="videoContainer">
+            <div id="videoTitle">PLEASE GIB</div> <!-- Added title above video -->
+            <video id="characterVideo" autoplay loop muted playsinline>
+                <!-- Source set via JavaScript -->
+            </video>
+            <button id="muteBtn" title="Toggle Mute">
+                <span id="muteIcon">🔇</span>
+            </button>
+        </div>
+        <h2>Choose Your Vance</h2>
+        <div id="characterOptions">
+            <div class="character-option">
+                <img src="vancehead2.png" alt="Vance Head" id="vanceHead2Img">
+            </div>
+            <div class="character-option">
+                <img src="vancewithhat.png" alt="Vance with Hat" id="vanceWithHatImg">
+            </div>
+            <div class="character-option">
+                <img src="vancegirl.png" alt="Vance Girl" id="vanceGirlImg">
+            </div>
+        </div>
+    </div>
+    <button id="restartBtn">Return to 1st Level</button>
+    <button id="characterSelectBtn">Return to Vance Selection</button>
+    <div id="controlInfo">
+        Move Left: A or Tap/Hold Left Side<br>
+        Move Right: D or Tap/Hold Right Side<br>
+        Throw Lollipops: Spacebar<br>
+        Pause/Resume: P<br>
+        Mute: M<br>
+        Explode Cybertruck: E
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const resumeBtn = document.getElementById('resumeBtn');
+        const menuBtn = document.getElementById('menuBtn');
+        const characterSelect = document.getElementById('characterSelect');
+        const characterVideo = document.getElementById('characterVideo');
+        const vanceHead2ImgElement = document.getElementById('vanceHead2Img');
+        const vanceWithHatImgElement = document.getElementById('vanceWithHatImg');
+        const vanceGirlImgElement = document.getElementById('vanceGirlImg');
+        const restartBtn = document.getElementById('restartBtn');
+        const characterSelectBtn = document.getElementById('characterSelectBtn');
+        const muteBtn = document.getElementById('muteBtn');
+        const muteIcon = document.getElementById('muteIcon');
+        const highScoreDisplay = document.getElementById('highScore');
+
+        // Load images
+        const vanceHead2Img = new Image();
+        vanceHead2Img.src = 'vancehead2.png';
+        const vanceWithHatImg = new Image();
+        vanceWithHatImg.src = 'vancewithhat.png';
+        const vanceGirlImg = new Image();
+        vanceGirlImg.src = 'vancegirl.png';
+        const zelenskyImg = new Image();
+        zelenskyImg.src = 'zelenskyhead3.png';
+        const lollipopImg = new Image();
+        lollipopImg.src = 'lollipop.png';
+        const officeImg = new Image();
+        officeImg.src = 'officepixel.png';
+        const trumpImg = new Image();
+        trumpImg.src = 'trumphead.png';
+        const cybertruckImg = new Image();
+        cybertruckImg.src = 'cybertruck.png';
+        const explosionImg = new Image();
+        explosionImg.src = 'explosion.png';
+
+        let selectedVanceImg = null;
+        let gameOverText = null;
+        let highScore = localStorage.getItem('highScore') || 0;
+        highScoreDisplay.textContent = `High Score: ${highScore}`;
+        let hasCybertruck = false;
+
+        // Preload images and set up video
+        let imagesLoaded = 0;
+        const totalImages = 9;
+        function imageLoaded(img) {
+            imagesLoaded++;
+            console.log(`Image loaded: ${img.src}, Total loaded: ${imagesLoaded}/${totalImages}`);
+            if (imagesLoaded === totalImages) {
+                console.log("All images loaded, setting up video and showing character select");
+                setupCharacterVideo();
+                drawBackground();
+                characterSelect.style.display = 'flex';
+            }
+        }
+        function imageError(img) {
+            console.error(`Failed to load image: ${img.src}`);
+        }
+        vanceHead2Img.onload = () => imageLoaded(vanceHead2Img);
+        vanceHead2Img.onerror = () => imageError(vanceHead2Img);
+        vanceWithHatImg.onload = () => imageLoaded(vanceWithHatImg);
+        vanceWithHatImg.onerror = () => imageError(vanceWithHatImg);
+        vanceGirlImg.onload = () => imageLoaded(vanceGirlImg);
+        vanceGirlImg.onerror = () => imageError(vanceGirlImg);
+        zelenskyImg.onload = () => imageLoaded(zelenskyImg);
+        zelenskyImg.onerror = () => imageError(zelenskyImg);
+        lollipopImg.onload = () => imageLoaded(lollipopImg);
+        lollipopImg.onerror = () => imageError(lollipopImg);
+        officeImg.onload = () => imageLoaded(officeImg);
+        officeImg.onerror = () => imageError(officeImg);
+        trumpImg.onload = () => imageLoaded(trumpImg);
+        trumpImg.onerror = () => imageError(trumpImg);
+        cybertruckImg.onload = () => imageLoaded(cybertruckImg);
+        cybertruckImg.onerror = () => imageError(cybertruckImg);
+        explosionImg.onload = () => imageLoaded(explosionImg);
+        explosionImg.onerror = () => imageError(explosionImg);
+
+        // Setup random video selection with mute/unmute functionality
+        function setupCharacterVideo() {
+            const videos = ['vance3d.mp4', 'vance3d2.mp4'];
+            const randomVideo = videos[Math.floor(Math.random() * videos.length)];
+            characterVideo.innerHTML = '';
+            const source = document.createElement('source');
+            source.src = randomVideo;
+            source.type = 'video/mp4';
+            characterVideo.appendChild(source);
+            characterVideo.muted = true;
+            muteIcon.textContent = '🔇';
+            characterVideo.load();
+            characterVideo.play().catch(error => {
+                console.error("Video playback failed:", error);
+                characterSelect.style.display = 'flex';
+            });
+            console.log(`Playing video: ${randomVideo}`);
+        }
+
+        // Toggle mute/unmute function
+        function toggleMute() {
+            characterVideo.muted = !characterVideo.muted;
+            muteIcon.textContent = characterVideo.muted ? '🔇' : '🔊';
+            console.log(`Video ${characterVideo.muted ? 'muted' : 'unmuted'}`);
+        }
+
+        // Mute button click
+        muteBtn.addEventListener('click', toggleMute);
+
+        // Base sizes
+        const BASE_CANVAS_WIDTH = 800;
+        let scaleFactor = canvas.width / BASE_CANVAS_WIDTH;
+
+        // Game objects
+        const player = {
+            x: 400,
+            baseWidth: 62,
+            baseHeight: 62,
+            displayWidth: 62 * scaleFactor,
+            displayHeight: 62 * scaleFactor,
+            targetWidth: 62 * scaleFactor,
+            targetHeight: 62 * scaleFactor,
+            baseSpeed: 5,
+            speed: 5 * scaleFactor,
+            text: null,
+            textTimer: 0,
+            invincible: false,
+            invincibleTimer: 0,
+            sizeMultiplier: 1,
+            sizeTransition: 1,
+            sizeTransitionSpeed: 2,
+            explosion: null
+        };
+
+        let lollipops = [];
+        let zelenskyHeads = [];
+        let trumpHeads = [];
+        let cybertrucks = [];
+        let textEffects = [];
+        let level = 1;
+        let score = 0;
+        let timeLeft = 60;
+        let gameActive = false;
+        let gamePaused = false;
+        let levelTransition = false;
+        let transitionTimer = 3;
+        let gibMoneyTimer = 0;
+        let trumpSpawnTimer = 10;
+        let cybertruckSpawnTimer = 20;
+        let lastTrumpSpawnTime = 60;
+        let lastCybertruckSpawnTime = 60;
+        let gameTimer = null;
+        let animationFrameId = null;
+        let isLoopRunning = false;
+
+        // Touch controls state
+        let touchLeft = false;
+        let touchRight = false;
+
+        const levels = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50];
+
+        // Easing function
+        function easeInOut(t) {
+            return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+        }
+
+        // Draw background function
+        function drawBackground() {
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            if (officeImg.complete) {
+                ctx.drawImage(officeImg, 0, 0, canvas.width, canvas.height);
+            }
+            console.log("Background drawn with officepixel.png");
+        }
+
+        // Character selection via image clicks
+        vanceHead2ImgElement.addEventListener('click', () => {
+            selectedVanceImg = vanceHead2Img;
+            characterSelect.style.display = 'none';
+            characterVideo.pause();
+            console.log("Selected Vance Head - Starting game");
+            drawInitialScreen();
+            startGame();
+        });
+
+        vanceWithHatImgElement.addEventListener('click', () => {
+            selectedVanceImg = vanceWithHatImg;
+            characterSelect.style.display = 'none';
+            characterVideo.pause();
+            console.log("Selected Vance with Hat - Starting game");
+            drawInitialScreen();
+            startGame();
+        });
+
+        vanceGirlImgElement.addEventListener('click', () => {
+            selectedVanceImg = vanceGirlImg;
+            characterSelect.style.display = 'none';
+            characterVideo.pause();
+            console.log("Selected Vance Girl - Starting game");
+            drawInitialScreen();
+            startGame();
+        });
+
+        // Input handling (Keyboard)
+        const keys = {};
+        document.addEventListener('keydown', (e) => {
+            if (characterSelect.style.display === 'flex' && e.key.toLowerCase() === 'm') {
+                toggleMute();
+            }
+            if (e.key === 'Enter' && !gameActive && gameOverText) {
+                resetGame();
+                return;
+            }
+            if (!gameActive) return;
+            keys[e.key] = true;
+            if (e.key === 'p' && !levelTransition) {
+                if (!gamePaused) {
+                    gamePaused = true;
+                    pauseBtn.disabled = true;
+                    resumeBtn.disabled = false;
+                } else {
+                    gamePaused = false;
+                    pauseBtn.disabled = false;
+                    resumeBtn.disabled = true;
+                    lastTime = performance.now();
+                    if (!isLoopRunning) gameLoop(lastTime);
+                }
+            }
+            if (e.key === 'e' && hasCybertruck) {
+                triggerCybertruckExplosion();
+            }
+            console.log("Key pressed:", e.key, "Player position:", player.x, canvas.height - player.displayHeight);
+            if (e.key === ' ') shootLollipop();
+        });
+        document.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+            console.log("Key released:", e.key);
+        });
+
+        // Touch controls for mobile
+        canvas.addEventListener('touchstart', (e) => {
+            if (!gameActive || gamePaused || levelTransition) return;
+            e.preventDefault();
+            const touch = e.touches[0];
+            const touchX = touch.clientX - canvas.offsetLeft;
+            if (touchX < canvas.width / 2) {
+                touchLeft = true;
+            } else {
+                touchRight = true;
+            }
+            console.log("Touch started:", touchX, "Left:", touchLeft, "Right:", touchRight);
+        });
+
+        canvas.addEventListener('touchmove', (e) => {
+            if (!gameActive || gamePaused || levelTransition) return;
+            e.preventDefault();
+            const touch = e.touches[0];
+            const touchX = touch.clientX - canvas.offsetLeft;
+            touchLeft = touchX < canvas.width / 2;
+            touchRight = touchX >= canvas.width / 2;
+            console.log("Touch moved:", touchX, "Left:", touchLeft, "Right:", touchRight);
+        });
+
+        canvas.addEventListener('touchend', (e) => {
+            if (!gameActive || gamePaused || levelTransition) return;
+            e.preventDefault();
+            touchLeft = false;
+            touchRight = false;
+            console.log("Touch ended");
+        });
+
+        // Pause/Resume buttons
+        pauseBtn.addEventListener('click', () => {
+            if (gameActive && !gamePaused && !levelTransition) {
+                gamePaused = true;
+                pauseBtn.disabled = true;
+                resumeBtn.disabled = false;
+            }
+        });
+        resumeBtn.addEventListener('click', () => {
+            if (gameActive && gamePaused && !levelTransition) {
+                gamePaused = false;
+                pauseBtn.disabled = false;
+                resumeBtn.disabled = true;
+                lastTime = performance.now();
+                if (!isLoopRunning) gameLoop(lastTime);
+            }
+        });
+
+        // Menu button
+        menuBtn.addEventListener('click', () => {
+            if (gameActive) {
+                returnToCharacterSelect();
+            }
+        });
+
+        // Restart button
+        restartBtn.addEventListener('click', () => {
+            resetGame();
+        });
+
+        // Return to character select button
+        characterSelectBtn.addEventListener('click', () => {
+            returnToCharacterSelect();
+        });
+
+        // Responsive canvas
+        function resizeCanvas() {
+            const aspectRatio = 800 / 600;
+            let newWidth = window.innerWidth * 0.9;
+            let newHeight = newWidth / aspectRatio;
+
+            if (newHeight > window.innerHeight * 0.8) {
+                newHeight = window.innerHeight * 0.8;
+                newWidth = newHeight * aspectRatio;
+            }
+
+            canvas.width = newWidth;
+            canvas.height = newHeight;
+
+            scaleFactor = canvas.width / BASE_CANVAS_WIDTH;
+
+            // Update player speed
+            player.speed = player.baseSpeed * scaleFactor;
+
+            player.x = canvas.width / 2 - player.baseWidth / 2;
+            player.displayWidth = player.baseWidth * scaleFactor * player.sizeMultiplier;
+            player.displayHeight = player.baseHeight * scaleFactor * player.sizeMultiplier;
+            player.targetWidth = player.baseWidth * scaleFactor * player.sizeMultiplier;
+            player.targetHeight = player.baseHeight * scaleFactor * player.sizeMultiplier;
+
+            zelenskyHeads.forEach(head => {
+                head.displayWidth = 41 * scaleFactor;
+                head.displayHeight = 61 * scaleFactor;
+                head.speedX = (Math.random() - 0.5) * 2.5 * scaleFactor;
+                head.speedY = (Math.random() - 0.5) * 2.5 * scaleFactor;
+            });
+
+            trumpHeads.forEach(head => {
+                head.width = 100 * scaleFactor;
+                head.height = 62 * scaleFactor;
+                head.speedY = 2.5 * scaleFactor;
+            });
+
+            cybertrucks.forEach(truck => {
+                truck.width = 60 * scaleFactor;
+                truck.height = 30 * scaleFactor;
+                truck.speedY = 2.5 * scaleFactor;
+            });
+
+            lollipops.forEach(lollipop => {
+                lollipop.width = 10 * 1.3 * scaleFactor;
+                lollipop.height = 20 * 1.3 * scaleFactor;
+                lollipop.speed = -6 * scaleFactor;
+            });
+
+            if (!gameActive) {
+                drawBackground();
+                if (characterSelect.style.display === 'none' && selectedVanceImg) {
+                    drawInitialScreen();
+                }
+            } else {
+                draw();
+            }
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Draw initial screen (after character selection)
+        function drawInitialScreen() {
+            drawBackground();
+            if (selectedVanceImg && selectedVanceImg.complete) {
+                ctx.drawImage(selectedVanceImg, player.x, canvas.height - player.displayHeight, player.displayWidth, player.displayHeight);
+            }
+            console.log("Initial screen drawn with selected Vance");
+        }
+
+        function spawnZelenskyHeads(count) {
+            zelenskyHeads = [];
+            for (let i = 0; i < count; i++) {
+                zelenskyHeads.push({
+                    x: Math.random() * (canvas.width - 41 * scaleFactor),
+                    y: Math.random() * (canvas.height / 2),
+                    width: 41,
+                    height: 61,
+                    displayWidth: 41 * scaleFactor,
+                    displayHeight: 61 * scaleFactor,
+                    speedX: (Math.random() - 0.5) * 2.5 * scaleFactor,
+                    speedY: (Math.random() - 0.5) * 2.5 * scaleFactor,
+                    text: null,
+                    textTimer: 0
+                });
+            }
+        }
+
+        function spawnTrumpHead() {
+            trumpHeads.push({
+                x: Math.random() * (canvas.width - 100 * scaleFactor),
+                y: -62 * scaleFactor,
+                width: 100 * scaleFactor,
+                height: 62 * scaleFactor,
+                speedY: 2.5 * scaleFactor,
+                text: "MAGA"
+            });
+            lastTrumpSpawnTime = Math.floor(timeLeft);
+            console.log("Trump head spawned at timeLeft:", lastTrumpSpawnTime);
+        }
+
+        function spawnCybertruck() {
+            cybertrucks.push({
+                x: Math.random() * (canvas.width - 60 * scaleFactor),
+                y: -30 * scaleFactor,
+                width: 60 * scaleFactor,
+                height: 30 * scaleFactor,
+                speedY: 2.5 * scaleFactor,
+            });
+            lastCybertruckSpawnTime = Math.floor(timeLeft);
+            console.log("Cybertruck spawned at timeLeft:", lastCybertruckSpawnTime);
+        }
+
+        function shootLollipop() {
+            const lollipop = {
+                x: player.x + (player.displayWidth - (10 * 1.3 * scaleFactor)) / 2,
+                y: canvas.height - player.displayHeight,
+                width: 10 * 1.3 * scaleFactor,
+                height: 20 * 1.3 * scaleFactor,
+                speed: -6 * scaleFactor,
+            };
+            lollipops.push(lollipop);
+            player.text = "Say Pwease";
+            player.textTimer = 1;
+            console.log("Lollipop shot at:", lollipop.x, lollipop.y, "Lollipops array length:", lollipops.length);
+        }
+
+        function triggerCybertruckExplosion() {
+            if (hasCybertruck) {
+                player.explosion = {
+                    x: player.x + player.displayWidth / 2,
+                    y: canvas.height - player.displayHeight / 2,
+                    baseWidth: 200 * scaleFactor,
+                    baseHeight: 200 * scaleFactor,
+                    width: 200 * scaleFactor,
+                    height: 200 * scaleFactor,
+                    timer: 2,
+                    sizeTimer: 0.5
+                };
+                hasCybertruck = false;
+                console.log("Cybertruck exploded manually");
+            }
+        }
+
+        function resetGame() {
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+            if (gameTimer) {
+                clearInterval(gameTimer);
+                gameTimer = null;
+            }
+            isLoopRunning = false;
+
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('highScore', highScore);
+                highScoreDisplay.textContent = `High Score: ${highScore}`;
+            }
+
+            level = 1;
+            score = 0;
+            timeLeft = 60;
+            player.width = player.baseWidth;
+            player.height = player.baseHeight;
+            player.displayWidth = player.baseWidth * scaleFactor;
+            player.displayHeight = player.baseHeight * scaleFactor;
+            player.targetWidth = player.baseWidth * scaleFactor;
+            player.targetHeight = player.baseHeight * scaleFactor;
+            player.x = canvas.width / 2 - player.baseWidth / 2;
+            player.speed = player.baseSpeed * scaleFactor;
+            player.text = null;
+            player.invincible = false;
+            player.invincibleTimer = 0;
+            player.sizeMultiplier = 1;
+            player.sizeTransition = 1;
+            player.explosion = null;
+            hasCybertruck = false;
+            lollipops = [];
+            trumpHeads = [];
+            cybertrucks = [];
+            textEffects = [];
+            gameActive = true;
+            gamePaused = false;
+            levelTransition = false;
+            transitionTimer = 3;
+            gibMoneyTimer = 0;
+            trumpSpawnTimer = 10;
+            cybertruckSpawnTimer = 20;
+            lastTrumpSpawnTime = 60;
+            lastCybertruckSpawnTime = 60;
+            pauseBtn.disabled = false;
+            resumeBtn.disabled = true;
+            canvas.classList.remove('green-border');
+            spawnZelenskyHeads(levels[0]);
+            gameOverText = null;
+            restartBtn.style.display = 'none';
+            characterSelectBtn.style.display = 'none';
+            touchLeft = false;
+            touchRight = false;
+
+            startGameTimer();
+            lastTime = performance.now();
+            if (!isLoopRunning) {
+                isLoopRunning = true;
+                gameLoop(lastTime);
+            }
+            console.log("Game reset - loop started");
+        }
+
+        function returnToCharacterSelect() {
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+            if (gameTimer) {
+                clearInterval(gameTimer);
+                gameTimer = null;
+            }
+            isLoopRunning = false;
+
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('highScore', highScore);
+                highScoreDisplay.textContent = `High Score: ${highScore}`;
+            }
+
+            selectedVanceImg = null;
+            gameActive = false;
+            gameOverText = null;
+            restartBtn.style.display = 'none';
+            characterSelectBtn.style.display = 'none';
+            drawBackground();
+            setupCharacterVideo();
+            characterSelect.style.display = 'flex';
+            touchLeft = false;
+            touchRight = false;
+            console.log("Returned to character select");
+        }
+
+        function startGameTimer() {
+            if (gameTimer) clearInterval(gameTimer);
+            gameTimer = setInterval(() => {
+                if (gameActive && !gamePaused && !levelTransition && timeLeft > 0) {
+                    timeLeft -= 1;
+                } else if (timeLeft <= 0) {
+                    gameActive = false;
+                    clearInterval(gameTimer);
+                    gameTimer = null;
+                    if (animationFrameId) cancelAnimationFrame(animationFrameId);
+                    isLoopRunning = false;
+                    gameOverText = 'Game Over! Time Up! Final Score: ' + score;
+                    restartBtn.style.display = 'block';
+                    characterSelectBtn.style.display = 'block';
+                    console.log("Game over - time up");
+                }
+            }, 1000);
+        }
+
+        function startNextLevel() {
+            levelTransition = true;
+            transitionTimer = 3;
+            canvas.classList.add('green-border');
+            lollipops = [];
+            trumpHeads = [];
+            cybertrucks = [];
+            textEffects = [];
+            trumpSpawnTimer = 10;
+            cybertruckSpawnTimer = 20;
+            lastTrumpSpawnTime = 60;
+            lastCybertruckSpawnTime = 60;
+            let countdown = setInterval(() => {
+                transitionTimer--;
+                if (transitionTimer <= 0) {
+                    clearInterval(countdown);
+                    canvas.classList.remove('green-border');
+                    timeLeft = 60;
+                    player.width = player.baseWidth;
+                    player.height = player.baseHeight;
+                    player.displayWidth = player.baseWidth * scaleFactor;
+                    player.displayHeight = player.baseHeight * scaleFactor;
+                    player.targetWidth = player.baseWidth * scaleFactor;
+                    player.targetHeight = player.baseHeight * scaleFactor;
+                    player.x = canvas.width / 2 - player.baseWidth / 2;
+                    player.speed = player.baseSpeed * scaleFactor;
+                    player.text = null;
+                    player.invincible = false;
+                    player.invincibleTimer = 0;
+                    player.sizeMultiplier = 1;
+                    player.sizeTransition = 1;
+                    player.explosion = null;
+                    spawnZelenskyHeads(levels[level - 1]);
+                    levelTransition = false;
+                    lastTime = performance.now();
+                    if (!isLoopRunning) {
+                        isLoopRunning = true;
+                        gameLoop(lastTime);
+                    }
+                }
+            }, 1000);
+        }
+
+        function update() {
+            if (!gameActive || gamePaused || levelTransition) return;
+
+            if (keys['ArrowLeft'] || keys['a']) {
+                player.x = Math.max(0, player.x - player.speed);
+                console.log("Moving left (keyboard), new x:", player.x);
+            }
+            if (keys['ArrowRight'] || keys['d']) {
+                player.x = Math.min(canvas.width - player.baseWidth, player.x + player.speed);
+                console.log("Moving right (keyboard), new x:", player.x);
+            }
+
+            if (touchLeft) {
+                player.x = Math.max(0, player.x - player.speed);
+                console.log("Moving left (touch), new x:", player.x);
+            }
+            if (touchRight) {
+                player.x = Math.min(canvas.width - player.baseWidth, player.x + player.speed);
+                console.log("Moving right (touch), new x:", player.x);
+            }
+
+            lollipops.forEach((lollipop, index) => {
+                lollipop.y += lollipop.speed;
+                if (lollipop.y < 0) lollipops.splice(index, 1);
+            });
+
+            zelenskyHeads.forEach((head, index) => {
+                head.x += head.speedX;
+                head.y += head.speedY;
+
+                if (head.x <= 0 || head.x >= canvas.width - head.width) head.speedX *= -1;
+                if (head.y <= 0 || head.y >= canvas.height - head.height) head.speedY *= -1;
+
+                if (!player.invincible &&
+                    head.x < player.x + player.displayWidth &&
+                    head.x + head.width > player.x &&
+                    head.y < canvas.height &&
+                    head.y + head.height > canvas.height - player.displayHeight) {
+                    console.log("Collision with Zelensky head at:", head.x, head.y);
+                    gameActive = false;
+                    if (gameTimer) clearInterval(gameTimer);
+                    gameTimer = null;
+                    if (animationFrameId) cancelAnimationFrame(animationFrameId);
+                    isLoopRunning = false;
+                    gameOverText = 'Game Over! Zelensky has your money! Final Score: ' + score;
+                    restartBtn.style.display = 'block';
+                    characterSelectBtn.style.display = 'block';
+                    console.log("Game over - touched by Zelensky");
+                    return;
+                }
+            });
+
+            if (timeLeft > 0 && Math.floor(timeLeft) !== lastTrumpSpawnTime && Math.floor(timeLeft) % 10 === 0) {
+                spawnTrumpHead();
+            }
+            if (trumpSpawnTimer > 0) trumpSpawnTimer -= 1 / 60;
+
+            if (timeLeft > 0 && Math.floor(timeLeft) !== lastCybertruckSpawnTime && Math.floor(timeLeft) % 20 === 0) {
+                spawnCybertruck();
+            }
+            if (cybertruckSpawnTimer > 0) cybertruckSpawnTimer -= 1 / 60;
+
+            trumpHeads.forEach((head, index) => {
+                head.y += head.speedY;
+                if (head.y > canvas.height) trumpHeads.splice(index, 1);
+
+                if (head.x < player.x + player.displayWidth &&
+                    head.x + head.width > player.x &&
+                    head.y < canvas.height &&
+                    head.y + head.height > canvas.height - player.displayHeight) {
+                    console.log("Collision with Trump head at:", head.x, head.y);
+                    trumpHeads.splice(index, 1);
+                    player.invincible = true;
+                    player.invincibleTimer += 10;
+                    player.sizeMultiplier *= 2;
+                    player.targetWidth = player.baseWidth * scaleFactor * player.sizeMultiplier;
+                    player.targetHeight = player.baseHeight * scaleFactor * player.sizeMultiplier;
+                    player.sizeTransition = 0;
+                    player.text = "I'M NOT YELLING!";
+                    player.textTimer = 2;
+                }
+            });
+
+            cybertrucks.forEach((truck, index) => {
+                truck.y += truck.speedY;
+                if (truck.y > canvas.height) cybertrucks.splice(index, 1);
+
+                if (truck.x < player.x + player.displayWidth &&
+                    truck.x + truck.width > player.x &&
+                    truck.y < canvas.height &&
+                    truck.y + truck.height > canvas.height - player.displayHeight) {
+                    console.log("Collision with Cybertruck at:", truck.x, truck.y);
+                    cybertrucks.splice(index, 1);
+                    hasCybertruck = true;
+                }
+            });
+
+            if (player.explosion) {
+                player.explosion.timer -= 1 / 60;
+                if (player.explosion.sizeTimer > 0) {
+                    player.explosion.sizeTimer -= 1 / 60;
+                    const t = player.explosion.sizeTimer / 0.5;
+                    player.explosion.width = player.explosion.baseWidth * (1 + (1 - t));
+                    player.explosion.height = player.explosion.baseHeight * (1 + (1 - t));
+                } else {
+                    player.explosion.width = player.explosion.baseWidth;
+                    player.explosion.height = player.explosion.baseHeight;
+                }
+
+                zelenskyHeads = zelenskyHeads.filter(head => {
+                    const dx = head.x + head.width / 2 - player.explosion.x;
+                    const dy = head.y + head.height / 2 - player.explosion.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    const explosionRadius = player.explosion.width / 2;
+                    if (distance < explosionRadius) {
+                        score++;
+                        textEffects.push({
+                            x: head.x + head.width / 2,
+                            y: head.y + head.height / 2,
+                            text: "Thank You",
+                            textTimer: 1
+                        });
+                        return false;
+                    }
+                    return true;
+                });
+
+                if (player.explosion.timer <= 0) {
+                    player.explosion = null;
+                }
+            }
+
+            textEffects.forEach((effect, index) => {
+                effect.textTimer -= 1 / 60;
+                if (effect.textTimer <= 0) {
+                    textEffects.splice(index, 1);
+                }
+            });
+
+            lollipops.forEach((lollipop, lollipopIndex) => {
+                zelenskyHeads.forEach((head, headIndex) => {
+                    if (lollipop.x < head.x + head.width &&
+                        lollipop.x + lollipop.width > head.x &&
+                        lollipop.y < head.y + head.height &&
+                        lollipop.y + lollipop.height > head.y) {
+                        console.log("Lollipop hit Zelensky at:", head.x, head.y);
+                        lollipops.splice(lollipopIndex, 1);
+                        zelenskyHeads.splice(headIndex, 1);
+                        score++;
+                        textEffects.push({
+                            x: head.x + head.width / 2,
+                            y: head.y + head.height / 2,
+                            text: "Thank You",
+                            textTimer: 1
+                        });
+                        if (!player.invincible) {
+                            player.displayWidth *= 1.05;
+                            player.displayHeight *= 1.05;
+                            player.sizeMultiplier *= 1.05;
+                            player.targetWidth = player.displayWidth;
+                            player.targetHeight = player.displayHeight;
+                        }
+                    }
+                });
+            });
+
+            if (zelenskyHeads.length === 0 && level <= 10 && !levelTransition) {
+                level++;
+                if (level > 10) {
+                    gameActive = false;
+                    if (gameTimer) clearInterval(gameTimer);
+                    gameTimer = null;
+                    if (animationFrameId) cancelAnimationFrame(animationFrameId);
+                    isLoopRunning = false;
+                    gameOverText = 'You Won! No Questions Pwease!';
+                    restartBtn.style.display = 'none';
+                    characterSelectBtn.style.display = 'block';
+                    console.log("Game won - all 10 levels completed");
+                } else {
+                    console.log("Advancing to level", level);
+                    startNextLevel();
+                }
+            }
+
+            if (player.invincible) {
+                player.invincibleTimer -= 1 / 60;
+                if (player.sizeTransition < 1) {
+                    player.sizeTransition += 1 / (60 * player.sizeTransitionSpeed);
+                    if (player.sizeTransition > 1) player.sizeTransition = 1;
+                    const t = easeInOut(player.sizeTransition);
+                    player.displayWidth = (player.baseWidth * scaleFactor) + (player.targetWidth - (player.baseWidth * scaleFactor)) * t;
+                    player.displayHeight = (player.baseHeight * scaleFactor) + (player.targetHeight - (player.baseHeight * scaleFactor)) * t;
+                }
+                if (player.invincibleTimer <= 0) {
+                    player.invincible = false;
+                    player.targetWidth = player.baseWidth * scaleFactor;
+                    player.targetHeight = player.baseHeight * scaleFactor;
+                    player.sizeTransition = 0;
+                }
+            } else if (player.displayWidth > player.targetWidth && player.sizeTransition < 1) {
+                player.sizeTransition += 1 / (60 * player.sizeTransitionSpeed);
+                if (player.sizeTransition > 1) player.sizeTransition = 1;
+                const t = easeInOut(player.sizeTransition);
+                player.displayWidth = player.targetWidth + ((player.baseWidth * scaleFactor * player.sizeMultiplier) - player.targetWidth) * (1 - t);
+                player.displayHeight = player.targetHeight + ((player.baseHeight * scaleFactor * player.sizeMultiplier) - player.targetHeight) * (1 - t);
+                if (player.displayWidth < player.baseWidth * scaleFactor) {
+                    player.displayWidth = player.baseWidth * scaleFactor;
+                    player.displayHeight = player.baseHeight * scaleFactor;
+                }
+            }
+
+            if (player.textTimer > 0) {
+                player.textTimer -= 1 / 60;
+                if (player.textTimer <= 0) player.text = null;
+            }
+
+            gibMoneyTimer += 1 / 60;
+            if (gibMoneyTimer >= 5) {
+                zelenskyHeads.forEach(head => {
+                    head.text = "Gib Money";
+                    head.textTimer = 1;
+                });
+                gibMoneyTimer = 0;
+            }
+            zelenskyHeads.forEach(head => {
+                if (head.textTimer > 0) {
+                    head.textTimer -= 1 / 60;
+                    if (head.textTimer <= 0) head.text = null;
+                }
+            });
+        }
+
+        function draw() {
+            if (levelTransition) {
+                const flash = Math.floor(transitionTimer * 4) % 2 === 0;
+                ctx.fillStyle = flash ? 'rgba(255, 0, 0, 0.5)' : 'rgba(255, 0, 0, 0)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+            ctx.drawImage(officeImg, 0, 0, canvas.width, canvas.height);
+
+            if (player.invincible) {
+                if (player.invincibleTimer <= 3) {
+                    const flash = Math.floor(player.invincibleTimer * 4) % 2 === 0;
+                    ctx.shadowColor = flash ? 'red' : 'transparent';
+                    ctx.shadowBlur = flash ? 20 : 0;
+                } else {
+                    ctx.shadowColor = 'red';
+                    ctx.shadowBlur = 20;
+                }
+            }
+            ctx.drawImage(selectedVanceImg, player.x, canvas.height - player.displayHeight, player.displayWidth, player.displayHeight);
+            console.log("Drawing Vance at:", player.x, canvas.height - player.displayHeight, "Size:", player.displayWidth, player.displayHeight);
+            ctx.shadowBlur = 0;
+            ctx.shadowColor = 'transparent';
+            if (player.text) {
+                ctx.fillStyle = 'white';
+                ctx.shadowColor = 'black';
+                ctx.shadowBlur = 4;
+                ctx.font = `${20 * scaleFactor}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.fillText(player.text, player.x + player.displayWidth / 2, canvas.height - player.displayHeight - 10 * scaleFactor);
+                ctx.shadowBlur = 0;
+            }
+
+            if (player.explosion) {
+                const x = player.explosion.x - player.explosion.width / 2;
+                const y = player.explosion.y - player.explosion.height / 2;
+                ctx.drawImage(explosionImg, x, y, player.explosion.width, player.explosion.height);
+            }
+
+            lollipops.forEach(lollipop => {
+                ctx.drawImage(lollipopImg, lollipop.x, lollipop.y, lollipop.width, lollipop.height);
+                console.log("Drawing lollipop at:", lollipop.x, lollipop.y);
+            });
+
+            zelenskyHeads.forEach(head => {
+                ctx.drawImage(zelenskyImg, head.x, head.y, head.displayWidth, head.displayHeight);
+                if (head.text) {
+                    ctx.fillStyle = 'white';
+                    ctx.shadowColor = 'black';
+                    ctx.shadowBlur = 4;
+                    ctx.font = `${16 * scaleFactor}px Arial`;
+                    ctx.textAlign = 'center';
+                    ctx.fillText(head.text, head.x + head.displayWidth / 2, head.y - 10 * scaleFactor);
+                    ctx.shadowBlur = 0;
+                }
+            });
+
+            trumpHeads.forEach(head => {
+                ctx.drawImage(trumpImg, head.x, head.y, head.width, head.height);
+                if (head.text) {
+                    ctx.fillStyle = 'white';
+                    ctx.shadowColor = 'black';
+                    ctx.shadowBlur = 4;
+                    ctx.font = `${16 * scaleFactor}px Arial`;
+                    ctx.textAlign = 'center';
+                    ctx.fillText(head.text, head.x + head.width / 2, head.y - 10 * scaleFactor);
+                    ctx.shadowBlur = 0;
+                }
+            });
+
+            cybertrucks.forEach(truck => {
+                ctx.drawImage(cybertruckImg, truck.x, truck.y, truck.width, truck.height);
+            });
+
+            if (hasCybertruck) {
+                ctx.drawImage(cybertruckImg, canvas.width - 60 * scaleFactor, canvas.height - 30 * scaleFactor, 60 * scaleFactor, 30 * scaleFactor);
+            }
+
+            textEffects.forEach(effect => {
+                if (effect.textTimer > 0) {
+                    ctx.fillStyle = 'white';
+                    ctx.shadowColor = 'black';
+                    ctx.shadowBlur = 4;
+                    ctx.font = `${16 * scaleFactor}px Arial`;
+                    ctx.textAlign = 'center';
+                    ctx.fillText(effect.text, effect.x, effect.y - 10 * scaleFactor);
+                    ctx.shadowBlur = 0;
+                }
+            });
+
+            if (levelTransition) {
+                ctx.fillStyle = 'white';
+                ctx.shadowColor = 'black';
+                ctx.shadowBlur = 4;
+                ctx.font = `${40 * scaleFactor}px Arial`;
+                ctx.textAlign = 'center';
+                const timerText = transitionTimer === 3 ? "3, 2, 1" : transitionTimer === 2 ? "2, 1" : "1";
+                ctx.fillText(timerText, canvas.width / 2, canvas.height / 2);
+                ctx.shadowBlur = 0;
+            }
+
+            if (gameOverText) {
+                ctx.fillStyle = 'white';
+                ctx.shadowColor = 'black';
+                ctx.shadowBlur = 4;
+                ctx.font = `${30 * scaleFactor}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.fillText(gameOverText, canvas.width / 2, canvas.height / 2);
+                ctx.shadowBlur = 0;
+            }
+
+            document.getElementById('level').textContent = `Level: ${level}`;
+            document.getElementById('score').textContent = `Score: ${score}`;
+            document.getElementById('time').textContent = `Time: ${Math.floor(timeLeft)}`;
+            highScoreDisplay.textContent = `High Score: ${highScore}`;
+        }
+
+        let lastTime = performance.now();
+        function gameLoop(time) {
+            if (!gameActive || gamePaused || (levelTransition && transitionTimer > 0)) {
+                if (!isLoopRunning) return;
+            }
+
+            const delta = (time - lastTime) / 1000;
+            lastTime = time;
+
+            update();
+            draw();
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
+
+        function startGame() {
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            if (gameTimer) clearInterval(gameTimer);
+            isLoopRunning = false;
+
+            gameActive = true;
+            spawnZelenskyHeads(levels[0]);
+            startGameTimer();
+            lastTime = performance.now();
+            if (!isLoopRunning) {
+                isLoopRunning = true;
+                gameLoop(lastTime);
+            }
+            console.log("Game started - loop initiated");
+        }
+
+        console.log("Waiting for images to load before showing character select");
+        characterSelect.style.display = 'none';
+        drawBackground();
+    </script>
+</body>
+</html>
