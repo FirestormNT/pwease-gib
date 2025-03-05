@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Pwease Gib</title> <!-- Updated title to reflect new filename -->
+    <title>Pwease Gib</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
@@ -51,7 +51,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            flex-direction: column; /* Stack title and video vertically */
+            flex-direction: column;
         }
         #videoTitle {
             font-size: 24px;
@@ -97,8 +97,8 @@
             align-items: center;
         }
         .character-option img {
-            width: 62px;
-            height: 62px;
+            width: 124px; /* Doubled from 62px */
+            height: 124px; /* Doubled from 62px */
             margin-bottom: 10px;
             cursor: pointer;
             transition: transform 0.2s ease;
@@ -149,7 +149,7 @@
     <canvas id="gameCanvas"></canvas>
     <div id="characterSelect">
         <div id="videoContainer">
-            <div id="videoTitle">PWEASE GIB</div> <!-- Added title above video -->
+            <div id="videoTitle">PWEASE GIB</div>
             <video id="characterVideo" autoplay loop muted playsinline>
                 <!-- Source set via JavaScript -->
             </video>
@@ -211,12 +211,20 @@
         lollipopImg.src = 'lollipop.png';
         const officeImg = new Image();
         officeImg.src = 'officepixel.png';
+        const hallwayImg = new Image(); // New background
+        hallwayImg.src = 'hallway.png';
+        const lawnImg = new Image(); // New background
+        lawnImg.src = 'lawn.png';
         const trumpImg = new Image();
         trumpImg.src = 'trumphead.png';
         const cybertruckImg = new Image();
         cybertruckImg.src = 'cybertruck.png';
         const explosionImg = new Image();
         explosionImg.src = 'explosion.png';
+
+        // Background array for rotation
+        const backgrounds = [officeImg, hallwayImg, lawnImg];
+        let currentBackgroundIndex = 0; // Start with officepixel.png
 
         let selectedVanceImg = null;
         let gameOverText = null;
@@ -226,7 +234,7 @@
 
         // Preload images and set up video
         let imagesLoaded = 0;
-        const totalImages = 9;
+        const totalImages = 11; // Updated to include hallway.png and lawn.png
         function imageLoaded(img) {
             imagesLoaded++;
             console.log(`Image loaded: ${img.src}, Total loaded: ${imagesLoaded}/${totalImages}`);
@@ -252,6 +260,10 @@
         lollipopImg.onerror = () => imageError(lollipopImg);
         officeImg.onload = () => imageLoaded(officeImg);
         officeImg.onerror = () => imageError(officeImg);
+        hallwayImg.onload = () => imageLoaded(hallwayImg); // New
+        hallwayImg.onerror = () => imageError(hallwayImg); // New
+        lawnImg.onload = () => imageLoaded(lawnImg); // New
+        lawnImg.onerror = () => imageError(lawnImg); // New
         trumpImg.onload = () => imageLoaded(trumpImg);
         trumpImg.onerror = () => imageError(trumpImg);
         cybertruckImg.onload = () => imageLoaded(cybertruckImg);
@@ -345,14 +357,15 @@
             return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
         }
 
-        // Draw background function
+        // Draw background function with rotation
         function drawBackground() {
             ctx.fillStyle = '#fff';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            if (officeImg.complete) {
-                ctx.drawImage(officeImg, 0, 0, canvas.width, canvas.height);
+            const currentBackground = backgrounds[currentBackgroundIndex];
+            if (currentBackground.complete) {
+                ctx.drawImage(currentBackground, 0, 0, canvas.width, canvas.height);
             }
-            console.log("Background drawn with officepixel.png");
+            console.log(`Background drawn: ${currentBackground.src.split('/').pop()}`);
         }
 
         // Character selection via image clicks
@@ -502,7 +515,6 @@
 
             scaleFactor = canvas.width / BASE_CANVAS_WIDTH;
 
-            // Update player speed
             player.speed = player.baseSpeed * scaleFactor;
 
             player.x = canvas.width / 2 - player.baseWidth / 2;
@@ -682,6 +694,7 @@
             pauseBtn.disabled = false;
             resumeBtn.disabled = true;
             canvas.classList.remove('green-border');
+            currentBackgroundIndex = 0; // Reset to officepixel.png
             spawnZelenskyHeads(levels[0]);
             gameOverText = null;
             restartBtn.style.display = 'none';
@@ -780,6 +793,7 @@
                     player.sizeTransition = 1;
                     player.explosion = null;
                     spawnZelenskyHeads(levels[level - 1]);
+                    currentBackgroundIndex = (level - 1) % backgrounds.length; // Rotate background
                     levelTransition = false;
                     lastTime = performance.now();
                     if (!isLoopRunning) {
@@ -1028,7 +1042,7 @@
                 ctx.fillStyle = flash ? 'rgba(255, 0, 0, 0.5)' : 'rgba(255, 0, 0, 0)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
-            ctx.drawImage(officeImg, 0, 0, canvas.width, canvas.height);
+            drawBackground(); // Use the current background
 
             if (player.invincible) {
                 if (player.invincibleTimer <= 3) {
