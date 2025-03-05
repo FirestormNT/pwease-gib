@@ -222,13 +222,20 @@
         const explosionImg = new Image();
         explosionImg.src = 'explosion.png';
 
-        // Load sound effects
+        // Load sound effects (previous + new)
         const selectSound = new Audio('selectsound.wav');
         const explosionSound = new Audio('explosion.wav');
         const shootSound = new Audio('shoot.wav');
         const enlargedSound = new Audio('enlarged.wav');
-        const hitSoundPool = [new Audio('hit.wav'), new Audio('hit.wav'), new Audio('hit.wav')]; // Pool for overlapping hits
+        const hitSoundPool = [new Audio('hit.wav'), new Audio('hit.wav'), new Audio('hit.wav')];
         let hitSoundIndex = 0;
+        const deadSound = new Audio('dead.wav');
+        const hoverSound = new Audio('hover.wav');
+        const timerSound = new Audio('timer.wav');
+        const itemSound = new Audio('item.wav');
+        const clapSound = new Audio('clap.wav');
+        const pauseSound = new Audio('pause.wav');
+        const resumedSound = new Audio('resumed.wav');
 
         // Background array for rotation
         const backgrounds = [officeImg, hallwayImg, lawnImg];
@@ -376,32 +383,41 @@
             console.log(`Background drawn: ${currentBackground.src.split('/').pop()}`);
         }
 
-        // Character selection via image clicks with sound
+        // Character selection with hover and click sounds
+        vanceHead2ImgElement.addEventListener('mouseover', () => {
+            hoverSound.play();
+        });
         vanceHead2ImgElement.addEventListener('click', () => {
             selectedVanceImg = vanceHead2Img;
             characterSelect.style.display = 'none';
             characterVideo.pause();
-            selectSound.play(); // Play selection sound
+            selectSound.play();
             console.log("Selected Vance Head - Starting game");
             drawInitialScreen();
             startGame();
         });
 
+        vanceWithHatImgElement.addEventListener('mouseover', () => {
+            hoverSound.play();
+        });
         vanceWithHatImgElement.addEventListener('click', () => {
             selectedVanceImg = vanceWithHatImg;
             characterSelect.style.display = 'none';
             characterVideo.pause();
-            selectSound.play(); // Play selection sound
+            selectSound.play();
             console.log("Selected Vance with Hat - Starting game");
             drawInitialScreen();
             startGame();
         });
 
+        vanceGirlImgElement.addEventListener('mouseover', () => {
+            hoverSound.play();
+        });
         vanceGirlImgElement.addEventListener('click', () => {
             selectedVanceImg = vanceGirlImg;
             characterSelect.style.display = 'none';
             characterVideo.pause();
-            selectSound.play(); // Play selection sound
+            selectSound.play();
             console.log("Selected Vance Girl - Starting game");
             drawInitialScreen();
             startGame();
@@ -424,10 +440,12 @@
                     gamePaused = true;
                     pauseBtn.disabled = true;
                     resumeBtn.disabled = false;
+                    pauseSound.play(); // Play pause sound
                 } else {
                     gamePaused = false;
                     pauseBtn.disabled = false;
                     resumeBtn.disabled = true;
+                    resumedSound.play(); // Play resume sound
                     lastTime = performance.now();
                     if (!isLoopRunning) gameLoop(lastTime);
                 }
@@ -481,6 +499,7 @@
                 gamePaused = true;
                 pauseBtn.disabled = true;
                 resumeBtn.disabled = false;
+                pauseSound.play(); // Play pause sound
             }
         });
         resumeBtn.addEventListener('click', () => {
@@ -488,6 +507,7 @@
                 gamePaused = false;
                 pauseBtn.disabled = false;
                 resumeBtn.disabled = true;
+                resumedSound.play(); // Play resume sound
                 lastTime = performance.now();
                 if (!isLoopRunning) gameLoop(lastTime);
             }
@@ -634,7 +654,7 @@
             lollipops.push(lollipop);
             player.text = "Say Pwease";
             player.textTimer = 1;
-            shootSound.play(); // Play shoot sound
+            shootSound.play();
             console.log("Lollipop shot at:", lollipop.x, lollipop.y, "Lollipops array length:", lollipops.length);
         }
 
@@ -651,7 +671,7 @@
                     sizeTimer: 0.5
                 };
                 hasCybertruck = false;
-                explosionSound.play(); // Play explosion sound
+                explosionSound.play();
                 console.log("Cybertruck exploded manually");
             }
         }
@@ -819,6 +839,7 @@
             lastCybertruckSpawnTime = 60;
             let countdown = setInterval(() => {
                 transitionTimer--;
+                timerSound.play(); // Play timer sound for each countdown number
                 if (transitionTimer <= 0) {
                     clearInterval(countdown);
                     canvas.classList.remove('green-border');
@@ -840,6 +861,7 @@
                     spawnZelenskyHeads(levels[level - 1]);
                     currentBackgroundIndex = (level - 1) % backgrounds.length;
                     levelTransition = false;
+                    clapSound.play(); // Play clap sound when level is beaten
                     lastTime = performance.now();
                     if (!isLoopRunning) {
                         isLoopRunning = true;
@@ -893,6 +915,7 @@
                     gameTimer = null;
                     if (animationFrameId) cancelAnimationFrame(animationFrameId);
                     isLoopRunning = false;
+                    deadSound.play(); // Play dead sound
                     gameOverText = 'Game Over! Zelensky has your money! Final Score: ' + score;
                     restartBtn.style.display = 'block';
                     characterSelectBtn.style.display = 'block';
@@ -929,7 +952,7 @@
                     player.sizeTransition = 0;
                     player.text = "I'M NOT YELLING!";
                     player.textTimer = 2;
-                    enlargedSound.play(); // Play enlarged sound
+                    enlargedSound.play();
                 }
             });
 
@@ -944,6 +967,7 @@
                     console.log("Collision with Cybertruck at:", truck.x, truck.y);
                     cybertrucks.splice(index, 1);
                     hasCybertruck = true;
+                    itemSound.play(); // Play item sound when Cybertruck is caught
                 }
             });
 
@@ -972,7 +996,7 @@
                             text: "Thank You",
                             textTimer: 1
                         });
-                        hitSoundPool[hitSoundIndex].play(); // Play hit sound
+                        hitSoundPool[hitSoundIndex].play();
                         hitSoundIndex = (hitSoundIndex + 1) % hitSoundPool.length;
                         return false;
                     }
@@ -1007,7 +1031,7 @@
                             text: "Thank You",
                             textTimer: 1
                         });
-                        hitSoundPool[hitSoundIndex].play(); // Play hit sound
+                        hitSoundPool[hitSoundIndex].play();
                         hitSoundIndex = (hitSoundIndex + 1) % hitSoundPool.length;
                         if (!player.invincible) {
                             player.displayWidth *= 1.05;
