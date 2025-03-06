@@ -28,11 +28,11 @@
             border: 1px solid black;
             max-width: 100%;
             max-height: 80vh;
-            transition: border-color 0.5s ease;
+            transition: border 0.5s ease;
             background-color: #fff;
         }
         canvas.green-border {
-            border-color: green;
+            border: 5px solid green;
         }
         #characterSelect {
             display: flex;
@@ -44,6 +44,10 @@
             transform: translate(-50%, -50%);
             color: white;
             background: none;
+            width: 800px;
+            height: 600px;
+            max-width: 90vw;
+            max-height: 80vh;
             z-index: 10;
         }
         #videoContainer {
@@ -54,9 +58,13 @@
             flex-direction: column;
         }
         #videoTitle {
-            font-size: 24px;
-            margin-bottom: 10px;
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 20px;
             text-align: center;
+            position: relative;
+            top: -20px;
+            text-shadow: 2px 2px 4px #000;
         }
         #characterVideo {
             width: 300px;
@@ -88,6 +96,12 @@
         }
         #characterOptions {
             display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        .character-row {
+            display: flex;
             justify-content: center;
             gap: 40px;
         }
@@ -105,6 +119,9 @@
         }
         .character-option img:hover {
             transform: scale(1.1);
+        }
+        .character-option.selected {
+            outline: 3px solid green;
         }
         #restartBtn, #characterSelectBtn {
             display: none;
@@ -132,25 +149,84 @@
             text-align: center;
             font-size: 14px;
         }
+        #throwBtn, #powerUpBtn {
+            display: none;
+            margin-top: 10px;
+            padding: 15px 30px;
+            font-size: 18px;
+            border: 2px solid #fff;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            z-index: 10;
+            transition: transform 0.1s ease, background-color 0.1s ease;
+        }
+        #throwBtn {
+            background-color: #ff5555;
+            margin-right: 10px;
+        }
+        #powerUpBtn {
+            background-color: #55ff55;
+        }
+        #throwBtn:active, #powerUpBtn:active {
+            transform: scale(0.95);
+        }
+        #throwBtn:active {
+            background-color: #cc4444;
+        }
+        #powerUpBtn:active {
+            background-color: #44cc44;
+        }
+        #throwBtn.pressed {
+            background-color: #cc4444;
+        }
+        #powerUpBtn.pressed {
+            background-color: #44cc44;
+        }
+        @media (max-width: 768px) or (pointer: coarse) {
+            #throwBtn, #powerUpBtn {
+                display: inline-block;
+            }
+            #throwBtn {
+                padding: 20px 60px; /* Twice as big as #powerUpBtn */
+                font-size: 24px;
+            }
+            #powerUpBtn {
+                padding: 10px 30px; /* Standard size */
+                font-size: 18px;
+            }
+        }
+        #loadingScreen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 24px;
+            z-index: 20;
+        }
     </style>
 </head>
 <body>
+    <div id="loadingScreen">Loading: 0%</div>
     <div id="gameInfo">
         <span id="level">Level: 1</span> |
         <span id="score">Score: 0</span> |
         <span id="highScore">High Score: 0</span> |
-        <span id="time">Time: 60</span>
+        <span id="timer">Timer: 60</span>
     </div>
     <div id="controls">
         <button id="pauseBtn">Pause</button>
         <button id="resumeBtn" disabled>Resume</button>
-        <button id="menuBtn">Menu</button>
+        <button id="menuBtn">QUIT</button>
     </div>
     <canvas id="gameCanvas"></canvas>
+    <button id="throwBtn">Throw</button>
+    <button id="powerUpBtn">Item</button> <!-- Renamed to Item -->
     <div id="characterSelect">
         <div id="videoContainer">
             <div id="videoTitle">PWEASE GIB</div>
-            <video id="characterVideo" autoplay loop muted playsinline>
+            <video id="characterVideo" autoplay loop playsinline>
                 <!-- Source set via JavaScript -->
             </video>
             <button id="muteBtn" title="Toggle Mute">
@@ -159,26 +235,44 @@
         </div>
         <h2>Choose Your Vance</h2>
         <div id="characterOptions">
-            <div class="character-option">
-                <img src="vancehead2.png" alt="Vance Head" id="vanceHead2Img">
+            <div class="character-row">
+                <div class="character-option">
+                    <img src="vancehead2.png" alt="Vance Head" id="vanceHead2Img">
+                </div>
+                <div class="character-option">
+                    <img src="vancewithhat.png" alt="Vance with Hat" id="vanceWithHatImg">
+                </div>
+                <div class="character-option">
+                    <img src="vancegirl.png" alt="Vance Girl" id="vanceGirlImg">
+                </div>
+                <div class="character-option">
+                    <img src="vancesuit.png" alt="Vance Suit" id="vanceSuitImg">
+                </div>
             </div>
-            <div class="character-option">
-                <img src="vancewithhat.png" alt="Vance with Hat" id="vanceWithHatImg">
-            </div>
-            <div class="character-option">
-                <img src="vancegirl.png" alt="Vance Girl" id="vanceGirlImg">
+            <div class="character-row">
+                <div class="character-option">
+                    <img src="vancehat2.png" alt="Vance Hat 2" id="vanceHat2Img">
+                </div>
+                <div class="character-option">
+                    <img src="vancefat.png" alt="Vance Fat" id="vanceFatImg">
+                </div>
+                <div class="character-option">
+                    <img src="vancechubby.png" alt="Vance Chubby" id="vanceChubbyImg">
+                </div>
             </div>
         </div>
     </div>
     <button id="restartBtn">Return to 1st Level</button>
     <button id="characterSelectBtn">Return to Vance Selection</button>
     <div id="controlInfo">
-        Move Left: A or Tap/Hold Left Side<br>
-        Move Right: D or Tap/Hold Right Side<br>
-        Throw Lollipops: Spacebar<br>
+        <strong>Controls</strong><br>
+        Move Left: A or Left Arrow or Tap/Hold Left Side<br>
+        Move Right: D or Right Arrow or Tap/Hold Right Side<br>
+        Throw Lollipops: Spacebar or Throw Button (Mobile)<br>
         Pause/Resume: P<br>
-        Mute: M<br>
-        Explode Cybertruck: E
+        Mute/Unmute: M<br>
+        Use Item (Cybertruck/Javelin): E or Item Button (Mobile)<br> <!-- Updated to Item -->
+        Javelin Control: WASD
     </div>
 
     <script>
@@ -192,11 +286,18 @@
         const vanceHead2ImgElement = document.getElementById('vanceHead2Img');
         const vanceWithHatImgElement = document.getElementById('vanceWithHatImg');
         const vanceGirlImgElement = document.getElementById('vanceGirlImg');
+        const vanceSuitImgElement = document.getElementById('vanceSuitImg');
+        const vanceHat2ImgElement = document.getElementById('vanceHat2Img');
+        const vanceFatImgElement = document.getElementById('vanceFatImg');
+        const vanceChubbyImgElement = document.getElementById('vanceChubbyImg');
         const restartBtn = document.getElementById('restartBtn');
         const characterSelectBtn = document.getElementById('characterSelectBtn');
         const muteBtn = document.getElementById('muteBtn');
         const muteIcon = document.getElementById('muteIcon');
         const highScoreDisplay = document.getElementById('highScore');
+        const throwBtn = document.getElementById('throwBtn');
+        const powerUpBtn = document.getElementById('powerUpBtn');
+        const loadingScreen = document.getElementById('loadingScreen');
 
         // Load images
         const vanceHead2Img = new Image();
@@ -205,8 +306,18 @@
         vanceWithHatImg.src = 'vancewithhat.png';
         const vanceGirlImg = new Image();
         vanceGirlImg.src = 'vancegirl.png';
+        const vanceSuitImg = new Image();
+        vanceSuitImg.src = 'vancesuit.png';
+        const vanceHat2Img = new Image();
+        vanceHat2Img.src = 'vancehat2.png';
+        const vanceFatImg = new Image();
+        vanceFatImg.src = 'vancefat.png';
+        const vanceChubbyImg = new Image();
+        vanceChubbyImg.src = 'vancechubby.png';
         const zelenskyImg = new Image();
         zelenskyImg.src = 'zelenskyhead3.png';
+        const putinImg = new Image();
+        putinImg.src = 'putinhead.png';
         const lollipopImg = new Image();
         lollipopImg.src = 'lollipop.png';
         const officeImg = new Image();
@@ -215,14 +326,32 @@
         hallwayImg.src = 'hallway.png';
         const lawnImg = new Image();
         lawnImg.src = 'lawn.png';
+        const ballroomImg = new Image();
+        ballroomImg.src = 'ballroom.png';
+        const bedroomImg = new Image();
+        bedroomImg.src = 'bedroom.png';
+        const conferenceroomImg = new Image();
+        conferenceroomImg.src = 'conferenceroom.png';
+        const diningImg = new Image();
+        diningImg.src = 'dining.png';
         const trumpImg = new Image();
         trumpImg.src = 'trumphead.png';
         const cybertruckImg = new Image();
         cybertruckImg.src = 'cybertruck.png';
         const explosionImg = new Image();
         explosionImg.src = 'explosion.png';
+        const javelinImg = new Image();
+        javelinImg.src = 'javelin.png';
+        const missileImg = new Image();
+        missileImg.src = 'missile.png';
+        const hallway2Img = new Image(); // New background
+        hallway2Img.src = 'hallway2.png';
+        const gameroomImg = new Image(); // New background
+        gameroomImg.src = 'gameroom.png';
+        const lawn2Img = new Image(); // New background
+        lawn2Img.src = 'lawn2.png';
 
-        // Load sound effects (previous + new)
+        // Load sound effects
         const selectSound = new Audio('selectsound.wav');
         const explosionSound = new Audio('explosion.wav');
         const shootSound = new Audio('shoot.wav');
@@ -236,28 +365,30 @@
         const clapSound = new Audio('clap.wav');
         const pauseSound = new Audio('pause.wav');
         const resumedSound = new Audio('resumed.wav');
+        const missileLaunchSound = new Audio('missile_launch1.wav');
+        const missileFlyingSound = new Audio('missileflying.wav');
 
-        // Background array for rotation
-        const backgrounds = [officeImg, hallwayImg, lawnImg];
+        const backgrounds = [officeImg, hallwayImg, lawnImg, ballroomImg, bedroomImg, conferenceroomImg, diningImg, hallway2Img, gameroomImg, lawn2Img]; // Updated with new backgrounds
         let currentBackgroundIndex = 0;
 
         let selectedVanceImg = null;
         let gameOverText = null;
         let highScore = localStorage.getItem('highScore') || 0;
         highScoreDisplay.textContent = `High Score: ${highScore}`;
-        let hasCybertruck = false;
+        let currentPowerUp = null;
 
         // Preload images and set up video
         let imagesLoaded = 0;
-        const totalImages = 11;
+        const totalImages = 24; // Updated to 24 with 3 new backgrounds
         function imageLoaded(img) {
             imagesLoaded++;
-            console.log(`Image loaded: ${img.src}, Total loaded: ${imagesLoaded}/${totalImages}`);
+            loadingScreen.textContent = `Loading: ${Math.floor((imagesLoaded / totalImages) * 100)}%`;
             if (imagesLoaded === totalImages) {
-                console.log("All images loaded, setting up video and showing character select");
+                loadingScreen.style.display = 'none';
                 setupCharacterVideo();
                 drawBackground();
                 characterSelect.style.display = 'flex';
+                initCharacterSelectKeyboard();
             }
         }
         function imageError(img) {
@@ -269,8 +400,18 @@
         vanceWithHatImg.onerror = () => imageError(vanceWithHatImg);
         vanceGirlImg.onload = () => imageLoaded(vanceGirlImg);
         vanceGirlImg.onerror = () => imageError(vanceGirlImg);
+        vanceSuitImg.onload = () => imageLoaded(vanceSuitImg);
+        vanceSuitImg.onerror = () => imageError(vanceSuitImg);
+        vanceHat2Img.onload = () => imageLoaded(vanceHat2Img);
+        vanceHat2Img.onerror = () => imageError(vanceHat2Img);
+        vanceFatImg.onload = () => imageLoaded(vanceFatImg);
+        vanceFatImg.onerror = () => imageError(vanceFatImg);
+        vanceChubbyImg.onload = () => imageLoaded(vanceChubbyImg);
+        vanceChubbyImg.onerror = () => imageError(vanceChubbyImg);
         zelenskyImg.onload = () => imageLoaded(zelenskyImg);
         zelenskyImg.onerror = () => imageError(zelenskyImg);
+        putinImg.onload = () => imageLoaded(putinImg);
+        putinImg.onerror = () => imageError(putinImg);
         lollipopImg.onload = () => imageLoaded(lollipopImg);
         lollipopImg.onerror = () => imageError(lollipopImg);
         officeImg.onload = () => imageLoaded(officeImg);
@@ -279,47 +420,61 @@
         hallwayImg.onerror = () => imageError(hallwayImg);
         lawnImg.onload = () => imageLoaded(lawnImg);
         lawnImg.onerror = () => imageError(lawnImg);
+        ballroomImg.onload = () => imageLoaded(ballroomImg);
+        ballroomImg.onerror = () => imageError(ballroomImg);
+        bedroomImg.onload = () => imageLoaded(bedroomImg);
+        bedroomImg.onerror = () => imageError(bedroomImg);
+        conferenceroomImg.onload = () => imageLoaded(conferenceroomImg);
+        conferenceroomImg.onerror = () => imageError(conferenceroomImg);
+        diningImg.onload = () => imageLoaded(diningImg);
+        diningImg.onerror = () => imageError(diningImg);
         trumpImg.onload = () => imageLoaded(trumpImg);
         trumpImg.onerror = () => imageError(trumpImg);
         cybertruckImg.onload = () => imageLoaded(cybertruckImg);
         cybertruckImg.onerror = () => imageError(cybertruckImg);
         explosionImg.onload = () => imageLoaded(explosionImg);
         explosionImg.onerror = () => imageError(explosionImg);
+        javelinImg.onload = () => imageLoaded(javelinImg);
+        javelinImg.onerror = () => imageError(javelinImg);
+        missileImg.onload = () => imageLoaded(missileImg);
+        missileImg.onerror = () => imageError(missileImg);
+        hallway2Img.onload = () => imageLoaded(hallway2Img); // New background
+        hallway2Img.onerror = () => imageError(hallway2Img);
+        gameroomImg.onload = () => imageLoaded(gameroomImg); // New background
+        gameroomImg.onerror = () => imageError(gameroomImg);
+        lawn2Img.onload = () => imageLoaded(lawn2Img); // New background
+        lawn2Img.onerror = () => imageError(lawn2Img);
 
-        // Setup random video selection with mute/unmute functionality
+        // Setup random video selection with mute persistence
         function setupCharacterVideo() {
-            const videos = ['vance3d.mp4', 'vance3d2.mp4'];
+            const videos = ['vance3d.mp4', 'vance3d2.mp4', 'strobe.mp4', 'retrowave.mp4'];
             const randomVideo = videos[Math.floor(Math.random() * videos.length)];
             characterVideo.innerHTML = '';
             const source = document.createElement('source');
             source.src = randomVideo;
             source.type = 'video/mp4';
             characterVideo.appendChild(source);
-            characterVideo.muted = true;
-            muteIcon.textContent = '🔇';
+            const isMuted = localStorage.getItem('videoMuted') === 'true';
+            characterVideo.muted = isMuted;
+            muteIcon.textContent = isMuted ? '🔇' : '🔊';
             characterVideo.load();
             characterVideo.play().catch(error => {
                 console.error("Video playback failed:", error);
                 characterSelect.style.display = 'flex';
             });
-            console.log(`Playing video: ${randomVideo}`);
         }
 
-        // Toggle mute/unmute function
         function toggleMute() {
             characterVideo.muted = !characterVideo.muted;
             muteIcon.textContent = characterVideo.muted ? '🔇' : '🔊';
-            console.log(`Video ${characterVideo.muted ? 'muted' : 'unmuted'}`);
+            localStorage.setItem('videoMuted', characterVideo.muted);
         }
 
-        // Mute button click
         muteBtn.addEventListener('click', toggleMute);
 
-        // Base sizes
         const BASE_CANVAS_WIDTH = 800;
         let scaleFactor = canvas.width / BASE_CANVAS_WIDTH;
 
-        // Game objects
         const player = {
             x: 400,
             baseWidth: 62,
@@ -342,8 +497,11 @@
 
         let lollipops = [];
         let zelenskyHeads = [];
+        let putinHeads = [];
         let trumpHeads = [];
         let cybertrucks = [];
+        let javelins = [];
+        let missile = null;
         let textEffects = [];
         let level = 1;
         let score = 0;
@@ -353,26 +511,24 @@
         let levelTransition = false;
         let transitionTimer = 3;
         let gibMoneyTimer = 0;
-        let trumpSpawnTimer = 10;
-        let cybertruckSpawnTimer = 20;
+        let trumpSpawnTimer = 30;
+        let cybertruckSpawnTimer = 25;
+        let javelinSpawnTimer = 20;
         let lastTrumpSpawnTime = 60;
         let lastCybertruckSpawnTime = 60;
+        let lastJavelinSpawnTime = 60;
         let gameTimer = null;
         let animationFrameId = null;
-        let isLoopRunning = false;
 
-        // Touch controls state
         let touchLeft = false;
         let touchRight = false;
 
         const levels = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50];
 
-        // Easing function
         function easeInOut(t) {
             return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
         }
 
-        // Draw background function with rotation
         function drawBackground() {
             ctx.fillStyle = '#fff';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -380,55 +536,127 @@
             if (currentBackground.complete) {
                 ctx.drawImage(currentBackground, 0, 0, canvas.width, canvas.height);
             }
-            console.log(`Background drawn: ${currentBackground.src.split('/').pop()}`);
         }
 
-        // Character selection with hover and click sounds
-        vanceHead2ImgElement.addEventListener('mouseover', () => {
-            hoverSound.play();
-        });
+        let selectedCharacterIndex = 0;
+        const characterOptions = [
+            vanceHead2ImgElement, vanceWithHatImgElement, vanceGirlImgElement, vanceSuitImgElement,
+            vanceHat2ImgElement, vanceFatImgElement, vanceChubbyImgElement
+        ];
+        const characterImages = [
+            vanceHead2Img, vanceWithHatImg, vanceGirlImg, vanceSuitImg,
+            vanceHat2Img, vanceFatImg, vanceChubbyImg
+        ];
+
+        function updateCharacterSelection() {
+            characterOptions.forEach((option, index) => {
+                option.parentElement.classList.toggle('selected', index === selectedCharacterIndex);
+            });
+        }
+
+        function initCharacterSelectKeyboard() {
+            updateCharacterSelection();
+            document.addEventListener('keydown', handleCharacterSelectKeys);
+        }
+
+        function handleCharacterSelectKeys(e) {
+            if (characterSelect.style.display !== 'flex') return;
+            if (e.key === 'ArrowLeft') {
+                selectedCharacterIndex = (selectedCharacterIndex - 1 + characterOptions.length) % characterOptions.length;
+                hoverSound.play();
+                updateCharacterSelection();
+                e.preventDefault();
+            } else if (e.key === 'ArrowRight') {
+                selectedCharacterIndex = (selectedCharacterIndex + 1) % characterOptions.length;
+                hoverSound.play();
+                updateCharacterSelection();
+                e.preventDefault();
+            } else if (e.key === 'Enter') {
+                selectedVanceImg = characterImages[selectedCharacterIndex];
+                characterSelect.style.display = 'none';
+                characterVideo.pause();
+                selectSound.play();
+                drawInitialScreen();
+                startGame();
+                document.removeEventListener('keydown', handleCharacterSelectKeys);
+                e.preventDefault();
+            } else if (e.key.toLowerCase() === 'm') {
+                toggleMute();
+            }
+        }
+
+        vanceHead2ImgElement.addEventListener('mouseover', () => hoverSound.play());
         vanceHead2ImgElement.addEventListener('click', () => {
             selectedVanceImg = vanceHead2Img;
             characterSelect.style.display = 'none';
             characterVideo.pause();
             selectSound.play();
-            console.log("Selected Vance Head - Starting game");
             drawInitialScreen();
             startGame();
         });
 
-        vanceWithHatImgElement.addEventListener('mouseover', () => {
-            hoverSound.play();
-        });
+        vanceWithHatImgElement.addEventListener('mouseover', () => hoverSound.play());
         vanceWithHatImgElement.addEventListener('click', () => {
             selectedVanceImg = vanceWithHatImg;
             characterSelect.style.display = 'none';
             characterVideo.pause();
             selectSound.play();
-            console.log("Selected Vance with Hat - Starting game");
             drawInitialScreen();
             startGame();
         });
 
-        vanceGirlImgElement.addEventListener('mouseover', () => {
-            hoverSound.play();
-        });
+        vanceGirlImgElement.addEventListener('mouseover', () => hoverSound.play());
         vanceGirlImgElement.addEventListener('click', () => {
             selectedVanceImg = vanceGirlImg;
             characterSelect.style.display = 'none';
             characterVideo.pause();
             selectSound.play();
-            console.log("Selected Vance Girl - Starting game");
             drawInitialScreen();
             startGame();
         });
 
-        // Input handling (Keyboard)
+        vanceSuitImgElement.addEventListener('mouseover', () => hoverSound.play());
+        vanceSuitImgElement.addEventListener('click', () => {
+            selectedVanceImg = vanceSuitImg;
+            characterSelect.style.display = 'none';
+            characterVideo.pause();
+            selectSound.play();
+            drawInitialScreen();
+            startGame();
+        });
+
+        vanceHat2ImgElement.addEventListener('mouseover', () => hoverSound.play());
+        vanceHat2ImgElement.addEventListener('click', () => {
+            selectedVanceImg = vanceHat2Img;
+            characterSelect.style.display = 'none';
+            characterVideo.pause();
+            selectSound.play();
+            drawInitialScreen();
+            startGame();
+        });
+
+        vanceFatImgElement.addEventListener('mouseover', () => hoverSound.play());
+        vanceFatImgElement.addEventListener('click', () => {
+            selectedVanceImg = vanceFatImg;
+            characterSelect.style.display = 'none';
+            characterVideo.pause();
+            selectSound.play();
+            drawInitialScreen();
+            startGame();
+        });
+
+        vanceChubbyImgElement.addEventListener('mouseover', () => hoverSound.play());
+        vanceChubbyImgElement.addEventListener('click', () => {
+            selectedVanceImg = vanceChubbyImg;
+            characterSelect.style.display = 'none';
+            characterVideo.pause();
+            selectSound.play();
+            drawInitialScreen();
+            startGame();
+        });
+
         const keys = {};
         document.addEventListener('keydown', (e) => {
-            if (characterSelect.style.display === 'flex' && e.key.toLowerCase() === 'm') {
-                toggleMute();
-            }
             if (e.key === 'Enter' && !gameActive && gameOverText) {
                 resetGame();
                 return;
@@ -440,66 +668,95 @@
                     gamePaused = true;
                     pauseBtn.disabled = true;
                     resumeBtn.disabled = false;
-                    pauseSound.play(); // Play pause sound
+                    pauseSound.play();
                 } else {
                     gamePaused = false;
                     pauseBtn.disabled = false;
                     resumeBtn.disabled = true;
-                    resumedSound.play(); // Play resume sound
+                    resumedSound.play();
                     lastTime = performance.now();
-                    if (!isLoopRunning) gameLoop(lastTime);
                 }
             }
-            if (e.key === 'e' && hasCybertruck) {
-                triggerCybertruckExplosion();
+            if (e.key.toLowerCase() === 'e' && currentPowerUp) {
+                if (currentPowerUp === 'javelin') {
+                    launchMissile();
+                } else if (currentPowerUp === 'cybertruck') {
+                    triggerCybertruckExplosion();
+                }
             }
-            console.log("Key pressed:", e.key, "Player position:", player.x, canvas.height - player.displayHeight);
             if (e.key === ' ') shootLollipop();
         });
         document.addEventListener('keyup', (e) => {
             keys[e.key] = false;
-            console.log("Key released:", e.key);
         });
 
-        // Touch controls for mobile
-        canvas.addEventListener('touchstart', (e) => {
-            if (!gameActive || gamePaused || levelTransition) return;
+        document.body.addEventListener('touchstart', (e) => {
+            if (!gameActive || gamePaused || levelTransition || characterSelect.style.display === 'flex') return;
             e.preventDefault();
-            const touch = e.touches[0];
-            const touchX = touch.clientX - canvas.offsetLeft;
-            if (touchX < canvas.width / 2) {
-                touchLeft = true;
-            } else {
-                touchRight = true;
+            for (let touch of e.touches) {
+                const touchX = touch.clientX;
+                const touchY = touch.clientY;
+                if (touchY > canvas.offsetTop && touchY < canvas.offsetTop + canvas.height) {
+                    if (touchX < window.innerWidth / 3) {
+                        touchLeft = true;
+                    } else if (touchX > window.innerWidth * 2 / 3) {
+                        touchRight = true;
+                    }
+                }
             }
-            console.log("Touch started:", touchX, "Left:", touchLeft, "Right:", touchRight);
         });
 
-        canvas.addEventListener('touchmove', (e) => {
-            if (!gameActive || gamePaused || levelTransition) return;
-            e.preventDefault();
-            const touch = e.touches[0];
-            const touchX = touch.clientX - canvas.offsetLeft;
-            touchLeft = touchX < canvas.width / 2;
-            touchRight = touchX >= canvas.width / 2;
-            console.log("Touch moved:", touchX, "Left:", touchLeft, "Right:", touchRight);
-        });
-
-        canvas.addEventListener('touchend', (e) => {
-            if (!gameActive || gamePaused || levelTransition) return;
+        document.body.addEventListener('touchmove', (e) => {
+            if (!gameActive || gamePaused || levelTransition || characterSelect.style.display === 'flex') return;
             e.preventDefault();
             touchLeft = false;
             touchRight = false;
-            console.log("Touch ended");
+            for (let touch of e.touches) {
+                const touchX = touch.clientX;
+                const touchY = touch.clientY;
+                if (touchY > canvas.offsetTop && touchY < canvas.offsetTop + canvas.height) {
+                    if (touchX < window.innerWidth / 3) {
+                        touchLeft = true;
+                    } else if (touchX > window.innerWidth * 2 / 3) {
+                        touchRight = true;
+                    }
+                }
+            }
         });
 
-        // Pause/Resume buttons
+        document.body.addEventListener('touchend', (e) => {
+            if (!gameActive || gamePaused || levelTransition || characterSelect.style.display === 'flex') return;
+            e.preventDefault();
+            touchLeft = false;
+            touchRight = false;
+        });
+
+        throwBtn.addEventListener('touchstart', (e) => {
+            if (!gameActive || gamePaused || levelTransition) return;
+            e.preventDefault();
+            shootLollipop();
+            throwBtn.classList.add('pressed');
+            setTimeout(() => throwBtn.classList.remove('pressed'), 100);
+        });
+
+        powerUpBtn.addEventListener('touchstart', (e) => {
+            if (!gameActive || gamePaused || levelTransition || !currentPowerUp) return;
+            e.preventDefault();
+            if (currentPowerUp === 'javelin') {
+                launchMissile();
+            } else if (currentPowerUp === 'cybertruck') {
+                triggerCybertruckExplosion();
+            }
+            powerUpBtn.classList.add('pressed');
+            setTimeout(() => powerUpBtn.classList.remove('pressed'), 100);
+        });
+
         pauseBtn.addEventListener('click', () => {
             if (gameActive && !gamePaused && !levelTransition) {
                 gamePaused = true;
                 pauseBtn.disabled = true;
                 resumeBtn.disabled = false;
-                pauseSound.play(); // Play pause sound
+                pauseSound.play();
             }
         });
         resumeBtn.addEventListener('click', () => {
@@ -507,30 +764,25 @@
                 gamePaused = false;
                 pauseBtn.disabled = false;
                 resumeBtn.disabled = true;
-                resumedSound.play(); // Play resume sound
+                resumedSound.play();
                 lastTime = performance.now();
-                if (!isLoopRunning) gameLoop(lastTime);
             }
         });
 
-        // Menu button
         menuBtn.addEventListener('click', () => {
             if (gameActive) {
                 returnToCharacterSelect();
             }
         });
 
-        // Restart button
         restartBtn.addEventListener('click', () => {
             resetGame();
         });
 
-        // Return to character select button
         characterSelectBtn.addEventListener('click', () => {
             returnToCharacterSelect();
         });
 
-        // Responsive canvas
         function resizeCanvas() {
             const aspectRatio = 800 / 600;
             let newWidth = window.innerWidth * 0.9;
@@ -561,6 +813,18 @@
                 head.speedY = (Math.random() - 0.5) * 2.5 * scaleFactor;
             });
 
+            putinHeads.forEach(head => {
+                if (head.isSmall) {
+                    head.displayWidth = 20 * scaleFactor;
+                    head.displayHeight = 30 * scaleFactor;
+                } else {
+                    head.displayWidth = 41 * scaleFactor;
+                    head.displayHeight = 61 * scaleFactor;
+                }
+                head.speedX = head.speedX * scaleFactor / (head.isSmall ? 1 : 2.5);
+                head.speedY = head.speedY * scaleFactor / (head.isSmall ? 1 : 2.5);
+            });
+
             trumpHeads.forEach(head => {
                 head.width = 100 * scaleFactor;
                 head.height = 62 * scaleFactor;
@@ -572,6 +836,18 @@
                 truck.height = 30 * scaleFactor;
                 truck.speedY = 2.5 * scaleFactor;
             });
+
+            javelins.forEach(javelin => {
+                javelin.width = 20 * scaleFactor;
+                javelin.height = 60 * scaleFactor;
+                javelin.speedY = 2.5 * scaleFactor;
+            });
+
+            if (missile) {
+                missile.width = 90 * scaleFactor;
+                missile.height = 45 * scaleFactor;
+                missile.speed = 5 * scaleFactor;
+            }
 
             lollipops.forEach(lollipop => {
                 lollipop.width = 10 * 1.3 * scaleFactor;
@@ -591,13 +867,11 @@
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
 
-        // Draw initial screen (after character selection)
         function drawInitialScreen() {
             drawBackground();
             if (selectedVanceImg && selectedVanceImg.complete) {
                 ctx.drawImage(selectedVanceImg, player.x, canvas.height - player.displayHeight, player.displayWidth, player.displayHeight);
             }
-            console.log("Initial screen drawn with selected Vance");
         }
 
         function spawnZelenskyHeads(count) {
@@ -618,6 +892,52 @@
             }
         }
 
+     function spawnPutinHead() {
+    const padding = 100 * scaleFactor; // Increased padding to 100 units
+    const minX = padding;
+    const maxX = canvas.width - (41 * scaleFactor) - padding; // 41 is the width of big Putin
+    const spawnX = minX + Math.random() * (maxX - minX);
+    putinHeads.push({
+        x: spawnX,
+        y: Math.random() * (canvas.height / 2),
+        width: 41,
+        height: 61,
+        displayWidth: 41 * scaleFactor,
+        displayHeight: 61 * scaleFactor,
+        speedX: (Math.random() - 0.5) * 2.5 * scaleFactor,
+        speedY: (Math.random() - 0.5) * 2.5 * scaleFactor,
+        text: "WWIII!",
+        textTimer: Infinity,
+        isSmall: false
+    });
+}
+
+function spawnSmallPutinHeads(x, y, count) {
+    const spread = 50 * scaleFactor;
+    const minX = 0;
+    const maxX = canvas.width - (24 * scaleFactor); // Updated to new width
+    for (let i = 0; i < count; i++) {
+        let spawnX = x + (Math.random() - 0.5) * spread;
+        spawnX = Math.max(minX, Math.min(maxX, spawnX));
+        putinHeads.push({
+            x: spawnX,
+            y: y,
+            spawnY: y,
+            width: 24,                // Increased from 20 to 24 (20% bigger)
+            height: 36,               // Increased from 30 to 36 (20% bigger)
+            displayWidth: 24 * scaleFactor,  // Updated to match new width
+            displayHeight: 36 * scaleFactor, // Updated to match new height
+            speedX: (Math.random() - 0.5) * 1 * scaleFactor,
+            speedY: 0,
+            gravity: 0.1 * scaleFactor,
+            text: null,
+            textTimer: 0,
+            isSmall: true,
+            hasLanded: false
+        });
+    }
+}
+
         function spawnTrumpHead() {
             trumpHeads.push({
                 x: Math.random() * (canvas.width - 100 * scaleFactor),
@@ -628,7 +948,7 @@
                 text: "MAGA"
             });
             lastTrumpSpawnTime = Math.floor(timeLeft);
-            console.log("Trump head spawned at timeLeft:", lastTrumpSpawnTime);
+            trumpSpawnTimer = 30;
         }
 
         function spawnCybertruck() {
@@ -640,7 +960,19 @@
                 speedY: 2.5 * scaleFactor,
             });
             lastCybertruckSpawnTime = Math.floor(timeLeft);
-            console.log("Cybertruck spawned at timeLeft:", lastCybertruckSpawnTime);
+            cybertruckSpawnTimer = 25;
+        }
+
+        function spawnJavelin() {
+            javelins.push({
+                x: Math.random() * (canvas.width - 20 * scaleFactor),
+                y: -60 * scaleFactor,
+                width: 20 * scaleFactor,
+                height: 60 * scaleFactor,
+                speedY: 2.5 * scaleFactor,
+            });
+            lastJavelinSpawnTime = Math.floor(timeLeft);
+            javelinSpawnTimer = 20;
         }
 
         function shootLollipop() {
@@ -655,11 +987,10 @@
             player.text = "Say Pwease";
             player.textTimer = 1;
             shootSound.play();
-            console.log("Lollipop shot at:", lollipop.x, lollipop.y, "Lollipops array length:", lollipops.length);
         }
 
         function triggerCybertruckExplosion() {
-            if (hasCybertruck) {
+            if (currentPowerUp === 'cybertruck') {
                 player.explosion = {
                     x: player.x + player.displayWidth / 2,
                     y: canvas.height - player.displayHeight / 2,
@@ -670,140 +1001,109 @@
                     timer: 2,
                     sizeTimer: 0.5
                 };
-                hasCybertruck = false;
+                currentPowerUp = null;
                 explosionSound.play();
-                console.log("Cybertruck exploded manually");
+            }
+        }
+
+        function launchMissile() {
+            if (currentPowerUp === 'javelin') {
+                missile = {
+                    x: player.x + player.displayWidth / 2 - (90 * scaleFactor) / 2,
+                    y: canvas.height - player.displayHeight,
+                    width: 90 * scaleFactor,
+                    height: 45 * scaleFactor,
+                    speed: 5 * scaleFactor,
+                    explosion: null,
+                    lifetime: 3
+                };
+                currentPowerUp = null;
+                missileLaunchSound.play();
+                missileFlyingSound.loop = true;
+                missileFlyingSound.play();
+            }
+        }
+
+        function resetGameState(fullReset = false) {
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            if (gameTimer) clearInterval(gameTimer);
+
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('highScore', highScore);
+                highScoreDisplay.textContent = `High Score: ${highScore}`;
+            }
+
+            level = 1;
+            score = 0;
+            timeLeft = 60;
+            currentBackgroundIndex = 0;
+            player.x = canvas.width / 2 - player.baseWidth / 2;
+            player.displayWidth = player.baseWidth * scaleFactor;
+            player.displayHeight = player.baseHeight * scaleFactor;
+            player.targetWidth = player.baseWidth * scaleFactor;
+            player.targetHeight = player.baseHeight * scaleFactor;
+            player.speed = player.baseSpeed * scaleFactor;
+            player.text = null;
+            player.invincible = false;
+            player.invincibleTimer = 0;
+            player.sizeMultiplier = 1;
+            player.sizeTransition = 1;
+            player.explosion = null;
+            lollipops = [];
+            zelenskyHeads = [];
+            putinHeads = [];
+            trumpHeads = [];
+            cybertrucks = [];
+            javelins = [];
+            missile = null;
+            missileFlyingSound.pause();
+            missileFlyingSound.currentTime = 0;
+            textEffects = [];
+            gamePaused = false;
+            levelTransition = false;
+            transitionTimer = 3;
+            gibMoneyTimer = 0;
+            trumpSpawnTimer = 30;
+            cybertruckSpawnTimer = 25;
+            javelinSpawnTimer = 20;
+            lastTrumpSpawnTime = 60;
+            lastCybertruckSpawnTime = 60;
+            lastJavelinSpawnTime = 60;
+            gameOverText = null;
+            restartBtn.style.display = 'none';
+            characterSelectBtn.style.display = 'none';
+            touchLeft = false;
+            touchRight = false;
+
+            if (fullReset) {
+                selectedVanceImg = null;
+                gameActive = false;
+                currentPowerUp = null;
             }
         }
 
         function resetGame() {
-            if (animationFrameId) {
-                cancelAnimationFrame(animationFrameId);
-                animationFrameId = null;
-            }
-            if (gameTimer) {
-                clearInterval(gameTimer);
-                gameTimer = null;
-            }
-            isLoopRunning = false;
-
-            if (score > highScore) {
-                highScore = score;
-                localStorage.setItem('highScore', highScore);
-                highScoreDisplay.textContent = `High Score: ${highScore}`;
-            }
-
-            level = 1;
-            score = 0;
-            timeLeft = 60;
-            player.width = player.baseWidth;
-            player.height = player.baseHeight;
-            player.displayWidth = player.baseWidth * scaleFactor;
-            player.displayHeight = player.baseHeight * scaleFactor;
-            player.targetWidth = player.baseWidth * scaleFactor;
-            player.targetHeight = player.baseHeight * scaleFactor;
-            player.x = canvas.width / 2 - player.baseWidth / 2;
-            player.speed = player.baseSpeed * scaleFactor;
-            player.text = null;
-            player.invincible = false;
-            player.invincibleTimer = 0;
-            player.sizeMultiplier = 1;
-            player.sizeTransition = 1;
-            player.explosion = null;
-            hasCybertruck = false;
-            lollipops = [];
-            trumpHeads = [];
-            cybertrucks = [];
-            textEffects = [];
+            resetGameState();
             gameActive = true;
-            gamePaused = false;
-            levelTransition = false;
-            transitionTimer = 3;
-            gibMoneyTimer = 0;
-            trumpSpawnTimer = 10;
-            cybertruckSpawnTimer = 20;
-            lastTrumpSpawnTime = 60;
-            lastCybertruckSpawnTime = 60;
             pauseBtn.disabled = false;
             resumeBtn.disabled = true;
             canvas.classList.remove('green-border');
-            currentBackgroundIndex = 0;
             spawnZelenskyHeads(levels[0]);
-            gameOverText = null;
-            restartBtn.style.display = 'none';
-            characterSelectBtn.style.display = 'none';
-            touchLeft = false;
-            touchRight = false;
-
             startGameTimer();
             lastTime = performance.now();
-            if (!isLoopRunning) {
-                isLoopRunning = true;
-                gameLoop(lastTime);
-            }
-            console.log("Game reset - loop started");
+            animationFrameId = requestAnimationFrame(gameLoop);
         }
 
         function returnToCharacterSelect() {
-            if (animationFrameId) {
-                cancelAnimationFrame(animationFrameId);
-                animationFrameId = null;
-            }
-            if (gameTimer) {
-                clearInterval(gameTimer);
-                gameTimer = null;
-            }
-            isLoopRunning = false;
-
-            if (score > highScore) {
-                highScore = score;
-                localStorage.setItem('highScore', highScore);
-                highScoreDisplay.textContent = `High Score: ${highScore}`;
-            }
-
-            level = 1;
-            score = 0;
-            timeLeft = 60;
-            currentBackgroundIndex = 0;
-            player.width = player.baseWidth;
-            player.height = player.baseHeight;
-            player.displayWidth = player.baseWidth * scaleFactor;
-            player.displayHeight = player.baseHeight * scaleFactor;
-            player.targetWidth = player.baseWidth * scaleFactor;
-            player.targetHeight = player.baseHeight * scaleFactor;
-            player.x = canvas.width / 2 - player.baseWidth / 2;
-            player.speed = player.baseSpeed * scaleFactor;
-            player.text = null;
-            player.invincible = false;
-            player.invincibleTimer = 0;
-            player.sizeMultiplier = 1;
-            player.sizeTransition = 1;
-            player.explosion = null;
-            hasCybertruck = false;
-            lollipops = [];
-            trumpHeads = [];
-            cybertrucks = [];
-            textEffects = [];
-            gamePaused = false;
-            levelTransition = false;
-            transitionTimer = 3;
-            gibMoneyTimer = 0;
-            trumpSpawnTimer = 10;
-            cybertruckSpawnTimer = 20;
-            lastTrumpSpawnTime = 60;
-            lastCybertruckSpawnTime = 60;
-
-            selectedVanceImg = null;
-            gameActive = false;
-            gameOverText = null;
-            restartBtn.style.display = 'none';
-            characterSelectBtn.style.display = 'none';
+            resetGameState(true);
             drawBackground();
             setupCharacterVideo();
             characterSelect.style.display = 'flex';
-            touchLeft = false;
-            touchRight = false;
-            console.log("Returned to character select with reset to Level 1");
+            selectedCharacterIndex = 0;
+            updateCharacterSelection();
+            document.removeEventListener('keydown', handleCharacterSelectKeys);
+            document.addEventListener('keydown', handleCharacterSelectKeys);
         }
 
         function startGameTimer() {
@@ -816,11 +1116,9 @@
                     clearInterval(gameTimer);
                     gameTimer = null;
                     if (animationFrameId) cancelAnimationFrame(animationFrameId);
-                    isLoopRunning = false;
                     gameOverText = 'Game Over! Time Up! Final Score: ' + score;
                     restartBtn.style.display = 'block';
                     characterSelectBtn.style.display = 'block';
-                    console.log("Game over - time up");
                 }
             }, 1000);
         }
@@ -830,16 +1128,24 @@
             transitionTimer = 3;
             canvas.classList.add('green-border');
             lollipops = [];
+            zelenskyHeads = [];
+            putinHeads = [];
             trumpHeads = [];
             cybertrucks = [];
+            javelins = [];
+            missile = null;
+            missileFlyingSound.pause();
+            missileFlyingSound.currentTime = 0;
             textEffects = [];
-            trumpSpawnTimer = 10;
-            cybertruckSpawnTimer = 20;
+            trumpSpawnTimer = 30;
+            cybertruckSpawnTimer = 25;
+            javelinSpawnTimer = 20;
             lastTrumpSpawnTime = 60;
             lastCybertruckSpawnTime = 60;
+            lastJavelinSpawnTime = 60;
             let countdown = setInterval(() => {
                 transitionTimer--;
-                timerSound.play(); // Play timer sound for each countdown number
+                timerSound.play();
                 if (transitionTimer <= 0) {
                     clearInterval(countdown);
                     canvas.classList.remove('green-border');
@@ -861,12 +1167,7 @@
                     spawnZelenskyHeads(levels[level - 1]);
                     currentBackgroundIndex = (level - 1) % backgrounds.length;
                     levelTransition = false;
-                    clapSound.play(); // Play clap sound when level is beaten
-                    lastTime = performance.now();
-                    if (!isLoopRunning) {
-                        isLoopRunning = true;
-                        gameLoop(lastTime);
-                    }
+                    clapSound.play();
                 }
             }, 1000);
         }
@@ -874,22 +1175,173 @@
         function update() {
             if (!gameActive || gamePaused || levelTransition) return;
 
-            if (keys['ArrowLeft'] || keys['a']) {
-                player.x = Math.max(0, player.x - player.speed);
-                console.log("Moving left (keyboard), new x:", player.x);
-            }
-            if (keys['ArrowRight'] || keys['d']) {
-                player.x = Math.min(canvas.width - player.baseWidth, player.x + player.speed);
-                console.log("Moving right (keyboard), new x:", player.x);
-            }
+            if (!missile) {
+                if (keys['ArrowLeft'] || keys['a']) {
+                    player.x = Math.max(0, player.x - player.speed);
+                }
+                if (keys['ArrowRight'] || keys['d']) {
+                    player.x = Math.min(canvas.width - player.displayWidth, player.x + player.speed);
+                }
+                if (touchLeft) {
+                    player.x = Math.max(0, player.x - player.speed);
+                }
+                if (touchRight) {
+                    player.x = Math.min(canvas.width - player.displayWidth, player.x + player.speed);
+                }
+            } else {
+                if (keys['w']) missile.y -= missile.speed;
+                if (keys['s']) missile.y += missile.speed;
+                if (keys['a']) missile.x -= missile.speed;
+                if (keys['d']) missile.x += missile.speed;
 
-            if (touchLeft) {
-                player.x = Math.max(0, player.x - player.speed);
-                console.log("Moving left (touch), new x:", player.x);
-            }
-            if (touchRight) {
-                player.x = Math.min(canvas.width - player.baseWidth, player.x + player.speed);
-                console.log("Moving right (touch), new x:", player.x);
+                missile.x = Math.max(0, Math.min(canvas.width - missile.width, missile.x));
+                missile.y = Math.max(0, Math.min(canvas.height - missile.height, missile.y));
+
+                missile.lifetime -= 1 / 60;
+                if (missile.lifetime <= 0 && !missile.explosion) {
+                    missile.explosion = {
+                        x: missile.x + missile.width / 2,
+                        y: missile.y + missile.height / 2,
+                        baseWidth: 200 * scaleFactor,
+                        baseHeight: 200 * scaleFactor,
+                        width: 200 * scaleFactor,
+                        height: 200 * scaleFactor,
+                        timer: 2,
+                        sizeTimer: 0.5
+                    };
+                    explosionSound.play();
+                    missileFlyingSound.pause();
+                    missileFlyingSound.currentTime = 0;
+                }
+
+                zelenskyHeads = zelenskyHeads.filter((head, index) => {
+                    if (missile && missile.x < head.x + head.width &&
+                        missile.x + missile.width > head.x &&
+                        missile.y < head.y + head.height &&
+                        missile.y + missile.height > head.y) {
+                        missile.explosion = {
+                            x: missile.x + missile.width / 2,
+                            y: missile.y + missile.height / 2,
+                            baseWidth: 200 * scaleFactor,
+                            baseHeight: 200 * scaleFactor,
+                            width: 200 * scaleFactor,
+                            height: 200 * scaleFactor,
+                            timer: 2,
+                            sizeTimer: 0.5
+                        };
+                        explosionSound.play();
+                        missileFlyingSound.pause();
+                        missileFlyingSound.currentTime = 0;
+                        score++;
+                        textEffects.push({
+                            x: head.x + head.width / 2,
+                            y: head.y + head.height / 2,
+                            text: "Thank You",
+                            textTimer: 1
+                        });
+                        hitSoundPool[hitSoundIndex].play();
+                        hitSoundIndex = (hitSoundIndex + 1) % hitSoundPool.length;
+                        return false;
+                    }
+                    return true;
+                });
+
+                putinHeads = putinHeads.filter((head, index) => {
+                    if (missile && missile.x < head.x + head.width &&
+                        missile.x + missile.width > head.x &&
+                        missile.y < head.y + head.height &&
+                        missile.y + missile.height > head.y) {
+                        missile.explosion = {
+                            x: missile.x + missile.width / 2,
+                            y: missile.y + missile.height / 2,
+                            baseWidth: 200 * scaleFactor,
+                            baseHeight: 200 * scaleFactor,
+                            width: 200 * scaleFactor,
+                            height: 200 * scaleFactor,
+                            timer: 2,
+                            sizeTimer: 0.5
+                        };
+                        explosionSound.play();
+                        missileFlyingSound.pause();
+                        missileFlyingSound.currentTime = 0;
+                        score++;
+                        textEffects.push({
+                            x: head.x + head.width / 2,
+                            y: head.y + head.height / 2,
+                            text: "Thank You",
+                            textTimer: 1
+                        });
+                        hitSoundPool[hitSoundIndex].play();
+                        hitSoundIndex = (hitSoundIndex + 1) % hitSoundPool.length;
+                        if (!head.isSmall) {
+                            const splitCount = Math.min(2 + (level - 1) * 2, 20);
+                            spawnSmallPutinHeads(head.x, head.y, splitCount);
+                        }
+                        return false;
+                    }
+                    return true;
+                });
+
+                if (missile && missile.explosion) {
+                    missile.explosion.timer -= 1 / 60;
+                    if (missile.explosion.sizeTimer > 0) {
+                        missile.explosion.sizeTimer -= 1 / 60;
+                        const t = missile.explosion.sizeTimer / 0.5;
+                        missile.explosion.width = missile.explosion.baseWidth * (1 + (1 - t));
+                        missile.explosion.height = missile.explosion.baseHeight * (1 + (1 - t));
+                    } else {
+                        missile.explosion.width = missile.explosion.baseWidth;
+                        missile.explosion.height = missile.explosion.baseHeight;
+                    }
+
+                    zelenskyHeads = zelenskyHeads.filter(head => {
+                        const dx = head.x + head.width / 2 - missile.explosion.x;
+                        const dy = head.y + head.height / 2 - missile.explosion.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        const explosionRadius = missile.explosion.width / 2;
+                        if (distance < explosionRadius) {
+                            score++;
+                            textEffects.push({
+                                x: head.x + head.width / 2,
+                                y: head.y + head.height / 2,
+                                text: "Thank You",
+                                textTimer: 1
+                            });
+                            hitSoundPool[hitSoundIndex].play();
+                            hitSoundIndex = (hitSoundIndex + 1) % hitSoundPool.length;
+                            return false;
+                        }
+                        return true;
+                    });
+
+                    putinHeads = putinHeads.filter(head => {
+                        const dx = head.x + head.width / 2 - missile.explosion.x;
+                        const dy = head.y + head.height / 2 - missile.explosion.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        const explosionRadius = missile.explosion.width / 2;
+                        if (distance < explosionRadius) {
+                            score++;
+                            textEffects.push({
+                                x: head.x + head.width / 2,
+                                y: head.y + head.height / 2,
+                                text: "Thank You",
+                                textTimer: 1
+                            });
+                            hitSoundPool[hitSoundIndex].play();
+                            hitSoundIndex = (hitSoundIndex + 1) % hitSoundPool.length;
+                            if (!head.isSmall) {
+                                const splitCount = Math.min(2 + (level - 1) * 2, 20);
+                                spawnSmallPutinHeads(head.x, head.y, splitCount);
+                            }
+                            return false;
+                        }
+                        return true;
+                    });
+
+                    if (missile.explosion.timer <= 0) {
+                        missile = null;
+                    }
+                }
             }
 
             lollipops.forEach((lollipop, index) => {
@@ -909,30 +1361,88 @@
                     head.x + head.width > player.x &&
                     head.y < canvas.height &&
                     head.y + head.height > canvas.height - player.displayHeight) {
-                    console.log("Collision with Zelensky head at:", head.x, head.y);
                     gameActive = false;
                     if (gameTimer) clearInterval(gameTimer);
                     gameTimer = null;
                     if (animationFrameId) cancelAnimationFrame(animationFrameId);
-                    isLoopRunning = false;
-                    deadSound.play(); // Play dead sound
+                    deadSound.play();
                     gameOverText = 'Game Over! Zelensky has your money! Final Score: ' + score;
                     restartBtn.style.display = 'block';
                     characterSelectBtn.style.display = 'block';
-                    console.log("Game over - touched by Zelensky");
                     return;
                 }
             });
 
-            if (timeLeft > 0 && Math.floor(timeLeft) !== lastTrumpSpawnTime && Math.floor(timeLeft) % 10 === 0) {
+ putinHeads.forEach((head, index) => {
+    if (head.isSmall) {
+        head.y += head.speedY;
+        head.speedY += head.gravity;
+
+        head.x += head.speedX;
+        // Clamp position and reverse speed if hitting edges
+        if (head.x <= 0) {
+            head.x = 0;
+            head.speedX = Math.abs(head.speedX); // Bounce right
+        } else if (head.x >= canvas.width - head.displayWidth) {
+            head.x = canvas.width - head.displayWidth;
+            head.speedX = -Math.abs(head.speedX); // Bounce left
+        }
+
+        if (head.y >= canvas.height - head.height && !head.hasLanded) {
+            head.y = canvas.height - head.height;
+            head.speedY = -Math.sqrt(2 * head.gravity * (canvas.height - head.height - head.spawnY));
+            head.hasLanded = true;
+        } else if (head.hasLanded && head.y >= canvas.height - head.height) {
+            head.y = canvas.height - head.height;
+            head.speedY = -Math.sqrt(2 * head.gravity * (canvas.height - head.height - head.spawnY));
+        }
+        if (head.y < 0) head.y = 0;
+    } else {
+        head.x += head.speedX;
+        head.y += head.speedY;
+
+        // Clamp big Putin head position and reverse speed
+        if (head.x <= 0) {
+            head.x = 0;
+            head.speedX = Math.abs(head.speedX); // Bounce right
+        } else if (head.x >= canvas.width - head.displayWidth) {
+            head.x = canvas.width - head.displayWidth;
+            head.speedX = -Math.abs(head.speedX); // Bounce left
+        }
+        if (head.y <= 0 || head.y >= canvas.height - head.height) head.speedY *= -1;
+    }
+
+    if (!player.invincible &&
+        head.x < player.x + player.displayWidth &&
+        head.x + head.width > player.x &&
+        head.y < canvas.height &&
+        head.y + head.height > canvas.height - player.displayHeight) {
+        gameActive = false;
+        if (gameTimer) clearInterval(gameTimer);
+        gameTimer = null;
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
+        deadSound.play();
+        gameOverText = 'Game Over! Putin Started WWIII! Final Score: ' + score;
+        restartBtn.style.display = 'block';
+        characterSelectBtn.style.display = 'block';
+        return;
+    }
+});
+
+            trumpSpawnTimer -= 1 / 60;
+            if (trumpSpawnTimer <= 0 && timeLeft > 0) {
                 spawnTrumpHead();
             }
-            if (trumpSpawnTimer > 0) trumpSpawnTimer -= 1 / 60;
 
-            if (timeLeft > 0 && Math.floor(timeLeft) !== lastCybertruckSpawnTime && Math.floor(timeLeft) % 20 === 0) {
+            cybertruckSpawnTimer -= 1 / 60;
+            if (cybertruckSpawnTimer <= 0 && timeLeft > 0) {
                 spawnCybertruck();
             }
-            if (cybertruckSpawnTimer > 0) cybertruckSpawnTimer -= 1 / 60;
+
+            javelinSpawnTimer -= 1 / 60;
+            if (javelinSpawnTimer <= 0 && timeLeft > 0) {
+                spawnJavelin();
+            }
 
             trumpHeads.forEach((head, index) => {
                 head.y += head.speedY;
@@ -942,11 +1452,10 @@
                     head.x + head.width > player.x &&
                     head.y < canvas.height &&
                     head.y + head.height > canvas.height - player.displayHeight) {
-                    console.log("Collision with Trump head at:", head.x, head.y);
                     trumpHeads.splice(index, 1);
                     player.invincible = true;
                     player.invincibleTimer += 10;
-                    player.sizeMultiplier *= 2;
+                    player.sizeMultiplier *= 1.5;
                     player.targetWidth = player.baseWidth * scaleFactor * player.sizeMultiplier;
                     player.targetHeight = player.baseHeight * scaleFactor * player.sizeMultiplier;
                     player.sizeTransition = 0;
@@ -964,10 +1473,23 @@
                     truck.x + truck.width > player.x &&
                     truck.y < canvas.height &&
                     truck.y + truck.height > canvas.height - player.displayHeight) {
-                    console.log("Collision with Cybertruck at:", truck.x, truck.y);
                     cybertrucks.splice(index, 1);
-                    hasCybertruck = true;
-                    itemSound.play(); // Play item sound when Cybertruck is caught
+                    currentPowerUp = 'cybertruck';
+                    itemSound.play();
+                }
+            });
+
+            javelins.forEach((javelin, index) => {
+                javelin.y += javelin.speedY;
+                if (javelin.y > canvas.height) javelins.splice(index, 1);
+
+                if (javelin.x < player.x + player.displayWidth &&
+                    javelin.x + javelin.width > player.x &&
+                    javelin.y < canvas.height &&
+                    javelin.y + javelin.height > canvas.height - player.displayHeight) {
+                    javelins.splice(index, 1);
+                    currentPowerUp = 'javelin';
+                    itemSound.play();
                 }
             });
 
@@ -1003,6 +1525,30 @@
                     return true;
                 });
 
+                putinHeads = putinHeads.filter(head => {
+                    const dx = head.x + head.width / 2 - player.explosion.x;
+                    const dy = head.y + head.height / 2 - player.explosion.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    const explosionRadius = player.explosion.width / 2;
+                    if (distance < explosionRadius) {
+                        score++;
+                        textEffects.push({
+                            x: head.x + head.width / 2,
+                            y: head.y + head.height / 2,
+                            text: "Thank You",
+                            textTimer: 1
+                        });
+                        hitSoundPool[hitSoundIndex].play();
+                        hitSoundIndex = (hitSoundIndex + 1) % hitSoundPool.length;
+                        if (!head.isSmall) {
+                            const splitCount = Math.min(2 + (level - 1) * 2, 20);
+                            spawnSmallPutinHeads(head.x, head.y, splitCount);
+                        }
+                        return false;
+                    }
+                    return true;
+                });
+
                 if (player.explosion.timer <= 0) {
                     player.explosion = null;
                 }
@@ -1021,7 +1567,6 @@
                         lollipop.x + lollipop.width > head.x &&
                         lollipop.y < head.y + head.height &&
                         lollipop.y + lollipop.height > head.y) {
-                        console.log("Lollipop hit Zelensky at:", head.x, head.y);
                         lollipops.splice(lollipopIndex, 1);
                         zelenskyHeads.splice(headIndex, 1);
                         score++;
@@ -1040,27 +1585,54 @@
                             player.targetWidth = player.displayWidth;
                             player.targetHeight = player.displayHeight;
                         }
+                        if (zelenskyHeads.length === 0 && putinHeads.length === 0) {
+                            spawnPutinHead();
+                        }
+                        return;
+                    }
+                });
+
+                putinHeads.forEach((head, headIndex) => {
+                    if (lollipop.x < head.x + head.width &&
+                        lollipop.x + lollipop.width > head.x &&
+                        lollipop.y < head.y + head.height &&
+                        lollipop.y + lollipop.height > head.y) {
+                        lollipops.splice(lollipopIndex, 1);
+                        score++;
+                        textEffects.push({
+                            x: head.x + head.width / 2,
+                            y: head.y + head.height / 2,
+                            text: "Thank You",
+                            textTimer: 1
+                        });
+                        hitSoundPool[hitSoundIndex].play();
+                        hitSoundIndex = (hitSoundIndex + 1) % hitSoundPool.length;
+                        if (!head.isSmall) {
+                            const splitCount = Math.min(2 + (level - 1) * 2, 20);
+                            spawnSmallPutinHeads(head.x, head.y, splitCount);
+                            putinHeads.splice(headIndex, 1);
+                        } else {
+                            putinHeads.splice(headIndex, 1);
+                        }
+                        return;
                     }
                 });
             });
 
-            if (zelenskyHeads.length === 0 && level <= 10 && !levelTransition) {
-                level++;
-                if (level > 10) {
-                    gameActive = false;
-                    if (gameTimer) clearInterval(gameTimer);
-                    gameTimer = null;
-                    if (animationFrameId) cancelAnimationFrame(animationFrameId);
-                    isLoopRunning = false;
-                    gameOverText = 'You Won! No Questions Pwease!';
-                    restartBtn.style.display = 'none';
-                    characterSelectBtn.style.display = 'block';
-                    console.log("Game won - all 10 levels completed");
-                } else {
-                    console.log("Advancing to level", level);
-                    startNextLevel();
-                }
-            }
+      if (zelenskyHeads.length === 0 && putinHeads.length === 0 && level <= 10 && !levelTransition) {
+    level++;
+    if (level > 10) {
+        gameActive = false;
+        if (gameTimer) clearInterval(gameTimer);
+        gameTimer = null;
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
+        gameOverText = 'You Won! No Questions Pwease!';
+        restartBtn.style.display = 'none';
+        characterSelectBtn.style.display = 'block';
+    } else {
+        startNextLevel();
+    }
+}
 
             if (player.invincible) {
                 player.invincibleTimer -= 1 / 60;
@@ -1129,7 +1701,6 @@
                 }
             }
             ctx.drawImage(selectedVanceImg, player.x, canvas.height - player.displayHeight, player.displayWidth, player.displayHeight);
-            console.log("Drawing Vance at:", player.x, canvas.height - player.displayHeight, "Size:", player.displayWidth, player.displayHeight);
             ctx.shadowBlur = 0;
             ctx.shadowColor = 'transparent';
             if (player.text) {
@@ -1150,11 +1721,23 @@
 
             lollipops.forEach(lollipop => {
                 ctx.drawImage(lollipopImg, lollipop.x, lollipop.y, lollipop.width, lollipop.height);
-                console.log("Drawing lollipop at:", lollipop.x, lollipop.y);
             });
 
             zelenskyHeads.forEach(head => {
                 ctx.drawImage(zelenskyImg, head.x, head.y, head.displayWidth, head.displayHeight);
+                if (head.text) {
+                    ctx.fillStyle = 'white';
+                    ctx.shadowColor = 'black';
+                    ctx.shadowBlur = 4;
+                    ctx.font = `${16 * scaleFactor}px Arial`;
+                    ctx.textAlign = 'center';
+                    ctx.fillText(head.text, head.x + head.displayWidth / 2, head.y - 10 * scaleFactor);
+                    ctx.shadowBlur = 0;
+                }
+            });
+
+            putinHeads.forEach(head => {
+                ctx.drawImage(putinImg, head.x, head.y, head.displayWidth, head.displayHeight);
                 if (head.text) {
                     ctx.fillStyle = 'white';
                     ctx.shadowColor = 'black';
@@ -1183,8 +1766,24 @@
                 ctx.drawImage(cybertruckImg, truck.x, truck.y, truck.width, truck.height);
             });
 
-            if (hasCybertruck) {
+            javelins.forEach(javelin => {
+                ctx.drawImage(javelinImg, javelin.x, javelin.y, javelin.width, javelin.height);
+            });
+
+            if (currentPowerUp === 'cybertruck') {
                 ctx.drawImage(cybertruckImg, canvas.width - 60 * scaleFactor, canvas.height - 30 * scaleFactor, 60 * scaleFactor, 30 * scaleFactor);
+            } else if (currentPowerUp === 'javelin') {
+                ctx.drawImage(javelinImg, canvas.width - 20 * scaleFactor, canvas.height - 60 * scaleFactor, 20 * scaleFactor, 60 * scaleFactor);
+            }
+
+            if (missile) {
+                ctx.drawImage(missileImg, missile.x, missile.y, missile.width, missile.height);
+            }
+
+            if (missile && missile.explosion) {
+                const x = missile.explosion.x - missile.explosion.width / 2;
+                const y = missile.explosion.y - missile.explosion.height / 2;
+                ctx.drawImage(explosionImg, x, y, missile.explosion.width, missile.explosion.height);
             }
 
             textEffects.forEach(effect => {
@@ -1222,14 +1821,16 @@
 
             document.getElementById('level').textContent = `Level: ${level}`;
             document.getElementById('score').textContent = `Score: ${score}`;
-            document.getElementById('time').textContent = `Time: ${Math.floor(timeLeft)}`;
+            document.getElementById('timer').textContent = `Timer: ${Math.floor(timeLeft)}`;
             highScoreDisplay.textContent = `High Score: ${highScore}`;
         }
 
         let lastTime = performance.now();
         function gameLoop(time) {
             if (!gameActive || gamePaused || (levelTransition && transitionTimer > 0)) {
-                if (!isLoopRunning) return;
+                draw();
+                animationFrameId = requestAnimationFrame(gameLoop);
+                return;
             }
 
             const delta = (time - lastTime) / 1000;
@@ -1243,20 +1844,14 @@
         function startGame() {
             if (animationFrameId) cancelAnimationFrame(animationFrameId);
             if (gameTimer) clearInterval(gameTimer);
-            isLoopRunning = false;
 
             gameActive = true;
             spawnZelenskyHeads(levels[0]);
             startGameTimer();
             lastTime = performance.now();
-            if (!isLoopRunning) {
-                isLoopRunning = true;
-                gameLoop(lastTime);
-            }
-            console.log("Game started - loop initiated");
+            animationFrameId = requestAnimationFrame(gameLoop);
         }
 
-        console.log("Waiting for images to load before showing character select");
         characterSelect.style.display = 'none';
         drawBackground();
     </script>
