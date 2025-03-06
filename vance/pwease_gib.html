@@ -1,4 +1,10 @@
-<!DOCTYPE html>
+// Make sure M key also toggles mute/unmute
+        document.addEventListener('keydown', (e) => {
+            if (e.key.toLowerCase() === 'm') {
+                toggleMute();
+                e.preventDefault();
+            }
+        });        const characterVideo = document.getElementById('characterVideo');<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -24,99 +30,90 @@
         #controls {
             margin: 10px;
         }
-        canvas {
-            border: 1px solid black;
-            max-width: 100%;
-            max-height: 80vh;
-            transition: border 0.5s ease;
-            background-color: #fff;
-        }
-        canvas.green-border {
+   canvas {
+    border: 1px solid black;
+    max-width: 100%;
+    max-height: 80vh;
+    transition: border 0.5s ease;
+    background-color: #fff;
+}   canvas.green-border {
             border: 5px solid green;
         }
-        #characterSelect {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            background: none;
-            width: 800px;
-            height: 600px;
-            max-width: 90vw;
-            max-height: 80vh;
-            z-index: 10;
-        }
-        #videoContainer {
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-        }
-        #videoTitle {
-            font-size: 36px;
-            font-weight: bold;
-            margin-bottom: 20px;
-            text-align: center;
-            position: relative;
-            top: -20px;
-            text-shadow: 2px 2px 4px #000;
-        }
-        #characterVideo {
-            width: 300px;
-            height: auto;
-            margin-bottom: 10px;
-        }
+     #characterSelect {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    background: none;
+    width: 90vw; /* Removed fixed 800px */
+    max-height: 80vh; /* Keep max height constraint */
+    overflow-y: auto; /* Allow scrolling if content exceeds height */
+    z-index: 10;
+    padding: 10px; /* Add padding to prevent content from touching edges */
+    box-sizing: border-box; /* Include padding in width/height calculations */
+}
+
+#videoContainer {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    width: 100%; /* Ensure it fits within parent */
+}
+
+#videoTitle {
+    font-size: clamp(20px, 4vw, 36px); /* Scale between 20px and 36px based on viewport width */
+    font-weight: bold;
+    margin-bottom: 1vh; /* Use viewport height units for spacing */
+    text-align: center;
+    text-shadow: 2px 2px 4px #000;
+}
+
+#characterVideo {
+    width: clamp(150px, 40vw, 300px); /* Scale between 150px and 300px */
+    height: auto;
+    margin-bottom: 1vh;
+}
         #muteBtn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: rgba(0, 0, 0, 0.7);
-            border: none;
-            color: white;
-            font-size: 20px;
-            padding: 5px;
-            cursor: pointer;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        #muteBtn:hover {
-            background: rgba(0, 0, 0, 1);
+            /* Remove specific styling and let it inherit from other buttons */
+            margin: 0 5px;
         }
         #characterSelect h2 {
-            margin: 10px 0;
-        }
-        #characterOptions {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 20px;
-        }
-        .character-row {
-            display: flex;
-            justify-content: center;
-            gap: 40px;
-        }
+    margin: 1vh 0; /* Adjust spacing with viewport units */
+    font-size: clamp(16px, 3vw, 24px); /* Scale header text */
+}
+
+#characterOptions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2vh; /* Use viewport height units for spacing */
+    width: 100%; /* Ensure it fits within parent */
+}
+
+.character-row {
+    display: flex;
+    justify-content: center;
+    gap: clamp(10px, 4vw, 40px); /* Scale gap between 10px and 40px */
+    flex-wrap: wrap; /* Allow wrapping on small screens */
+}
         .character-option {
             display: flex;
             flex-direction: column;
             align-items: center;
         }
-        .character-option img {
-            width: 124px;
-            height: 124px;
-            margin-bottom: 10px;
-            cursor: pointer;
-            transition: transform 0.2s ease;
-        }
+     .character-option img {
+    width: clamp(60px, 15vw, 124px); /* Scale between 60px and 124px */
+    height: clamp(60px, 15vw, 124px); /* Maintain square aspect ratio */
+    margin-bottom: 1vh;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
         .character-option img:hover {
             transform: scale(1.1);
         }
@@ -205,10 +202,78 @@
             font-size: 24px;
             z-index: 20;
         }
+        /* Gamertag Entry Styles */
+        #gamertagEntry {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: transparent; /* Changed from rgba(0, 0, 0, 0.9) to transparent */
+            z-index: 30;
+            color: white;
+        }
+        #gamertagEntry h2 {
+            font-size: clamp(24px, 5vw, 36px);
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px #000;
+            background-color: rgba(0, 0, 0, 0.6); /* Added semi-transparent background */
+            padding: 10px 20px;
+            border-radius: 5px;
+        }
+        #gamertagInput {
+            padding: 10px 15px;
+            font-size: 18px;
+            width: clamp(200px, 50vw, 400px);
+            background-color: rgba(255, 255, 255, 0.9);
+            border: 2px solid #55ff55;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        #gamertagSubmit {
+            padding: 10px 20px;
+            font-size: 18px;
+            background-color: #55ff55;
+            border: none;
+            border-radius: 5px;
+            color: black;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        #gamertagSubmit:hover {
+            background-color: #44cc44;
+        }
+        /* We're removing this style since we won't use this element anymore
+        #playerGamertagDisplay {
+            position: absolute;
+            top: 10px;
+            left: 20px;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px #000;
+            z-index: 15;
+        }
+        */
     </style>
 </head>
 <body>
     <div id="loadingScreen">Loading: 0%</div>
+    
+    <!-- Gamertag Entry Screen -->
+    <div id="gamertagEntry">
+        <h2>ENTER GAMERTAG</h2>
+        <input type="text" id="gamertagInput" maxlength="15" placeholder="Your gamertag...">
+        <button id="gamertagSubmit">PLAY</button>
+    </div>
+    
+    <!-- We're removing this element since we'll draw directly on the canvas -->
+    <!-- <div id="playerGamertagDisplay"></div> -->
+    
     <div id="gameInfo">
         <span id="level">Level: 1</span> |
         <span id="score">Score: 0</span> |
@@ -216,8 +281,9 @@
         <span id="timer">Timer: 60</span>
     </div>
     <div id="controls">
-        <button id="pauseBtn">Pause</button>
-        <button id="resumeBtn" disabled>Resume</button>
+        <button id="pauseBtn">PAUSE</button>
+        <button id="resumeBtn" disabled>RESUME</button>
+        <button id="muteBtn">MUTE</button>
         <button id="menuBtn">QUIT</button>
     </div>
     <canvas id="gameCanvas"></canvas>
@@ -229,9 +295,7 @@
             <video id="characterVideo" autoplay loop playsinline>
                 <!-- Source set via JavaScript -->
             </video>
-            <button id="muteBtn" title="Toggle Mute">
-                <span id="muteIcon">🔇</span>
-            </button>
+            <!-- Removed the mute button from character select screen -->
         </div>
         <h2>Choose Your Vance</h2>
         <div id="characterOptions">
@@ -264,16 +328,16 @@
     </div>
     <button id="restartBtn">Return to 1st Level</button>
     <button id="characterSelectBtn">Return to Vance Selection</button>
-    <div id="controlInfo">
-        <strong>Controls</strong><br>
-        Move Left: A or Left Arrow or Tap/Hold Left Side<br>
-        Move Right: D or Right Arrow or Tap/Hold Right Side<br>
-        Throw Lollipops: Spacebar or Throw Button (Mobile)<br>
-        Pause/Resume: P<br>
-        Mute/Unmute: M<br>
-        Use Item (Cybertruck/Javelin): E or Item Button (Mobile)<br> <!-- Updated to Item -->
-        Javelin Control: WASD
-    </div>
+<div id="controlInfo">
+    <strong>Controls</strong><br>
+    Move Left: A<br>
+    Move Right: D<br>
+    Throw: Spacebar or Throw Button (Mobile)<br>
+    Pause/Resume: P<br>
+    Mute/Unmute: M<br>
+    Use Item: E or Item Button (Mobile)<br>
+    Javelin Control: WASD
+</div>
 
     <script>
         const canvas = document.getElementById('gameCanvas');
@@ -298,6 +362,15 @@
         const throwBtn = document.getElementById('throwBtn');
         const powerUpBtn = document.getElementById('powerUpBtn');
         const loadingScreen = document.getElementById('loadingScreen');
+        
+        // Gamertag elements
+        const gamertagEntry = document.getElementById('gamertagEntry');
+        const gamertagInput = document.getElementById('gamertagInput');
+        const gamertagSubmit = document.getElementById('gamertagSubmit');
+        // We're not using this element anymore
+        // const playerGamertagDisplay = document.getElementById('playerGamertagDisplay');
+        
+        let playerGamertag = '';
 
         // Load images
         const vanceHead2Img = new Image();
@@ -385,10 +458,20 @@
             loadingScreen.textContent = `Loading: ${Math.floor((imagesLoaded / totalImages) * 100)}%`;
             if (imagesLoaded === totalImages) {
                 loadingScreen.style.display = 'none';
-                setupCharacterVideo();
-                drawBackground();
-                characterSelect.style.display = 'flex';
-                initCharacterSelectKeyboard();
+                // Show gamertag entry with hallway2 background
+                drawHallwayBackground();
+                gamertagEntry.style.display = 'flex';
+            }
+        }
+        
+        // Function to draw hallway2 background for gamertag entry
+        function drawHallwayBackground() {
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Use hallway2Img as background
+            if (hallway2Img.complete) {
+                ctx.drawImage(hallway2Img, 0, 0, canvas.width, canvas.height);
             }
         }
         function imageError(img) {
@@ -445,6 +528,45 @@
         lawn2Img.onload = () => imageLoaded(lawn2Img); // New background
         lawn2Img.onerror = () => imageError(lawn2Img);
 
+        // Gamertag functionality
+        gamertagSubmit.addEventListener('click', submitGamertag);
+        gamertagInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                submitGamertag();
+            }
+        });
+
+        function submitGamertag() {
+            const gamertag = gamertagInput.value.trim();
+            if (gamertag) {
+                playerGamertag = gamertag;
+                // We don't need this line anymore since we're drawing on canvas
+                // playerGamertagDisplay.textContent = playerGamertag;
+                
+                // Save in localStorage for persistence
+                localStorage.setItem('playerGamertag', playerGamertag);
+                
+                // Hide gamertag entry and show character select
+                gamertagEntry.style.display = 'none';
+                setupCharacterVideo();
+                drawBackground();
+                characterSelect.style.display = 'flex';
+                initCharacterSelectKeyboard();
+            } else {
+                // Shake input or show error
+                gamertagInput.style.border = '2px solid red';
+                setTimeout(() => {
+                    gamertagInput.style.border = '2px solid #55ff55';
+                }, 1000);
+            }
+        }
+
+        // Check for saved gamertag on load
+        if (localStorage.getItem('playerGamertag')) {
+            playerGamertag = localStorage.getItem('playerGamertag');
+            gamertagInput.value = playerGamertag;
+        }
+
         // Setup random video selection with mute persistence
         function setupCharacterVideo() {
             const videos = ['vance3d.mp4', 'vance3d2.mp4', 'strobe.mp4', 'retrowave.mp4'];
@@ -456,7 +578,7 @@
             characterVideo.appendChild(source);
             const isMuted = localStorage.getItem('videoMuted') === 'true';
             characterVideo.muted = isMuted;
-            muteIcon.textContent = isMuted ? '🔇' : '🔊';
+            updateMuteButtonText(isMuted);
             characterVideo.load();
             characterVideo.play().catch(error => {
                 console.error("Video playback failed:", error);
@@ -464,13 +586,93 @@
             });
         }
 
-        function toggleMute() {
-            characterVideo.muted = !characterVideo.muted;
-            muteIcon.textContent = characterVideo.muted ? '🔇' : '🔊';
-            localStorage.setItem('videoMuted', characterVideo.muted);
+        function updateMuteButtonText(isMuted) {
+            muteBtn.textContent = isMuted ? "UNMUTE" : "MUTE";
         }
 
-        muteBtn.addEventListener('click', toggleMute);
+        function toggleMute() {
+    // Collect ALL audio elements
+    const allAudios = [
+        // Music/Video
+        characterVideo,
+        
+        // Sound Effects
+        selectSound, 
+        explosionSound, 
+        shootSound, 
+        enlargedSound, 
+        deadSound, 
+        hoverSound, 
+        timerSound, 
+        itemSound, 
+        clapSound, 
+        pauseSound, 
+        resumedSound,
+        missileLaunchSound, 
+        missileFlyingSound,
+        
+        // Hit Sound Pool
+        ...hitSoundPool
+    ];
+    
+    // Check current mute state
+    const isMuted = localStorage.getItem('videoMuted') === 'true';
+    const newMuteState = !isMuted;
+    
+    // Apply mute to all audio elements
+    allAudios.forEach(audio => {
+        // Ensure it's an Audio element before trying to mute
+        if (audio && audio.muted !== undefined) {
+            audio.muted = newMuteState;
+        }
+    });
+    
+    // Update mute button text
+    updateMuteButtonText(newMuteState);
+    
+    // Persist mute state
+    localStorage.setItem('videoMuted', newMuteState);
+}
+
+// Modify existing mute persistence code
+// Check initial mute state from localStorage
+const initialMuted = localStorage.getItem('videoMuted') === 'true';
+updateMuteButtonText(initialMuted);
+
+// Ensure all initial audio is muted if previously muted
+const allInitialAudios = [
+    characterVideo,
+    selectSound, 
+    explosionSound, 
+    shootSound, 
+    enlargedSound, 
+    deadSound, 
+    hoverSound, 
+    timerSound, 
+    itemSound, 
+    clapSound, a
+    pauseSound, 
+    resumedSound,
+    missileLaunchSound, 
+    missileFlyingSound,
+    ...hitSoundPool
+];
+
+allInitialAudios.forEach(audio => {
+    if (audio && audio.muted !== undefined) {
+        audio.muted = initialMuted;
+    }
+});
+
+muteBtn.addEventListener('click', toggleMute);
+
+// Add global mute key handling
+document.addEventListener('keydown', (e) => {
+    if (e.key.toLowerCase() === 'm') {
+        toggleMute();
+        e.preventDefault();
+    }
+});
 
         const BASE_CANVAS_WIDTH = 800;
         let scaleFactor = canvas.width / BASE_CANVAS_WIDTH;
@@ -580,9 +782,8 @@
                 startGame();
                 document.removeEventListener('keydown', handleCharacterSelectKeys);
                 e.preventDefault();
-            } else if (e.key.toLowerCase() === 'm') {
-                toggleMute();
             }
+            // Removed specific M key handling here since we now have global M key handling
         }
 
         vanceHead2ImgElement.addEventListener('mouseover', () => hoverSound.play());
@@ -856,9 +1057,16 @@
             });
 
             if (!gameActive) {
-                drawBackground();
-                if (characterSelect.style.display === 'none' && selectedVanceImg) {
-                    drawInitialScreen();
+                // If on gamertag entry screen, redraw hallway background
+                if (gamertagEntry.style.display === 'flex') {
+                    drawHallwayBackground();
+                }
+                // Otherwise draw regular background
+                else {
+                    drawBackground();
+                    if (characterSelect.style.display === 'none' && selectedVanceImg) {
+                        drawInitialScreen();
+                    }
                 }
             } else {
                 draw();
@@ -1579,9 +1787,9 @@ function spawnSmallPutinHeads(x, y, count) {
                         hitSoundPool[hitSoundIndex].play();
                         hitSoundIndex = (hitSoundIndex + 1) % hitSoundPool.length;
                         if (!player.invincible) {
-                            player.displayWidth *= 1.05;
-                            player.displayHeight *= 1.05;
-                            player.sizeMultiplier *= 1.05;
+                            player.displayWidth *= 1.02;
+                            player.displayHeight *= 1.02;
+                            player.sizeMultiplier *= 1.02;
                             player.targetWidth = player.displayWidth;
                             player.targetHeight = player.displayHeight;
                         }
@@ -1773,7 +1981,7 @@ function spawnSmallPutinHeads(x, y, count) {
             if (currentPowerUp === 'cybertruck') {
                 ctx.drawImage(cybertruckImg, canvas.width - 60 * scaleFactor, canvas.height - 30 * scaleFactor, 60 * scaleFactor, 30 * scaleFactor);
             } else if (currentPowerUp === 'javelin') {
-                ctx.drawImage(javelinImg, canvas.width - 20 * scaleFactor, canvas.height - 60 * scaleFactor, 20 * scaleFactor, 60 * scaleFactor);
+                ctx.drawImage(javelinImg, canvas.width - 40 * scaleFactor, canvas.height - 60 * scaleFactor, 20 * scaleFactor, 60 * scaleFactor);
             }
 
             if (missile) {
@@ -1818,6 +2026,17 @@ function spawnSmallPutinHeads(x, y, count) {
                 ctx.fillText(gameOverText, canvas.width / 2, canvas.height / 2);
                 ctx.shadowBlur = 0;
             }
+            
+            // Draw gamertag directly on the canvas
+            if (playerGamertag) {
+                ctx.fillStyle = 'white';
+                ctx.shadowColor = 'black';
+                ctx.shadowBlur = 4;
+                ctx.font = `${18 * scaleFactor}px Arial`;
+                ctx.textAlign = 'left';
+                ctx.fillText(playerGamertag, 10, 30);
+                ctx.shadowBlur = 0;
+            }
 
             document.getElementById('level').textContent = `Level: ${level}`;
             document.getElementById('score').textContent = `Score: ${score}`;
@@ -1845,6 +2064,10 @@ function spawnSmallPutinHeads(x, y, count) {
             if (animationFrameId) cancelAnimationFrame(animationFrameId);
             if (gameTimer) clearInterval(gameTimer);
 
+            // We don't need to update the playerGamertagDisplay anymore since we're
+            // drawing directly on the canvas
+            // playerGamertagDisplay.textContent = playerGamertag;
+
             gameActive = true;
             spawnZelenskyHeads(levels[0]);
             startGameTimer();
@@ -1852,8 +2075,8 @@ function spawnSmallPutinHeads(x, y, count) {
             animationFrameId = requestAnimationFrame(gameLoop);
         }
 
+        // Initially hide characterSelect and show gamertag entry first
         characterSelect.style.display = 'none';
-        drawBackground();
     </script>
 </body>
 </html>
