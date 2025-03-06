@@ -591,88 +591,35 @@
         }
 
         function toggleMute() {
-    // Collect ALL audio elements
-    const allAudios = [
-        // Music/Video
-        characterVideo,
-        
-        // Sound Effects
-        selectSound, 
-        explosionSound, 
-        shootSound, 
-        enlargedSound, 
-        deadSound, 
-        hoverSound, 
-        timerSound, 
-        itemSound, 
-        clapSound, 
-        pauseSound, 
-        resumedSound,
-        missileLaunchSound, 
-        missileFlyingSound,
-        
-        // Hit Sound Pool
-        ...hitSoundPool
-    ];
-    
-    // Check current mute state
-    const isMuted = localStorage.getItem('videoMuted') === 'true';
-    const newMuteState = !isMuted;
-    
-    // Apply mute to all audio elements
-    allAudios.forEach(audio => {
-        // Ensure it's an Audio element before trying to mute
-        if (audio && audio.muted !== undefined) {
-            audio.muted = newMuteState;
+            // Toggle mute for character video if it exists
+            if (characterVideo) {
+                characterVideo.muted = !characterVideo.muted;
+            }
+            
+            // Toggle mute for all audio elements
+            const allAudios = [
+                selectSound, explosionSound, shootSound, enlargedSound, 
+                ...hitSoundPool, deadSound, hoverSound, timerSound, 
+                itemSound, clapSound, pauseSound, resumedSound,
+                missileLaunchSound, missileFlyingSound
+            ];
+            
+            const isMuted = localStorage.getItem('videoMuted') === 'true';
+            const newMuteState = !isMuted;
+            
+            allAudios.forEach(audio => {
+                audio.muted = newMuteState;
+            });
+            
+            updateMuteButtonText(newMuteState);
+            localStorage.setItem('videoMuted', newMuteState);
         }
-    });
-    
-    // Update mute button text
-    updateMuteButtonText(newMuteState);
-    
-    // Persist mute state
-    localStorage.setItem('videoMuted', newMuteState);
-}
 
-// Modify existing mute persistence code
-// Check initial mute state from localStorage
-const initialMuted = localStorage.getItem('videoMuted') === 'true';
-updateMuteButtonText(initialMuted);
-
-// Ensure all initial audio is muted if previously muted
-const allInitialAudios = [
-    characterVideo,
-    selectSound, 
-    explosionSound, 
-    shootSound, 
-    enlargedSound, 
-    deadSound, 
-    hoverSound, 
-    timerSound, 
-    itemSound, 
-    clapSound, a
-    pauseSound, 
-    resumedSound,
-    missileLaunchSound, 
-    missileFlyingSound,
-    ...hitSoundPool
-];
-
-allInitialAudios.forEach(audio => {
-    if (audio && audio.muted !== undefined) {
-        audio.muted = initialMuted;
-    }
-});
-
-muteBtn.addEventListener('click', toggleMute);
-
-// Add global mute key handling
-document.addEventListener('keydown', (e) => {
-    if (e.key.toLowerCase() === 'm') {
-        toggleMute();
-        e.preventDefault();
-    }
-});
+        // Check initial mute state from localStorage
+        const initialMuted = localStorage.getItem('videoMuted') === 'true';
+        updateMuteButtonText(initialMuted);
+        
+        muteBtn.addEventListener('click', toggleMute);
 
         const BASE_CANVAS_WIDTH = 800;
         let scaleFactor = canvas.width / BASE_CANVAS_WIDTH;
